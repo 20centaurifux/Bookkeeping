@@ -377,6 +377,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		tableTransactions.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		tableTransactions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		panelTable.add(new JScrollPane(tableTransactions), BorderLayout.CENTER);
+
 		tableTransactions.registerKeyboardAction(new ActionListener()
 		{	
 			@Override
@@ -385,6 +386,16 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 				deleteSelectedTransaction();
 			}
 		}, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		tableTransactions.registerKeyboardAction(new ActionListener()
+		{	
+			@Override
+			public void actionPerformed(ActionEvent event)
+			{
+				editSelectedTransaction();
+			}
+		}, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
 		tableTransactions.addMouseListener(this);
 
 		// closing balance:
