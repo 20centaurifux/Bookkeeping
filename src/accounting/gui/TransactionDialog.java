@@ -35,6 +35,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 	public static final int RESULT_CANCEL = 2;
 
 	private static final long serialVersionUID = 8848635910124681241L;
+	private static Category lastCategory = null;
 	private Factory factory;
 	private Container contentPane;
 	private Transaction transaction;
@@ -51,6 +52,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 	private Vector<ICategoryListener> listener = new Vector<ICategoryListener>();
 	private Translation translation;
 	private Account account;
+	private boolean saveLastCategory = false;
 
 	public TransactionDialog(JFrame parent, String title, Transaction transaction)
 	{
@@ -74,7 +76,18 @@ public class TransactionDialog extends ADialog implements ActionListener
 
 			textAccount.setText(account.getName());
 			spinnerDate.setValue(Calendar.getInstance().getTime());
-			comboCategory.setSelectedIndex(0);
+
+			if(lastCategory != null)
+			{
+				comboCategory.setSelectedItem(lastCategory);
+			}
+
+			if(comboCategory.getSelectedIndex() == -1)
+			{
+				comboCategory.setSelectedIndex(0);
+			}
+
+			saveLastCategory = true;
     }
 
 	public int getResult()
@@ -420,5 +433,17 @@ public class TransactionDialog extends ADialog implements ActionListener
 	public void removeCategoryListener(ICategoryListener listener)
 	{
 		this.listener.remove(listener);
+	}
+
+	/*
+	 * window close event:
+	 */
+	@Override
+	public void windowClosing(WindowEvent event)
+	{
+		if(saveLastCategory)
+		{
+			lastCategory = (Category)comboCategory.getSelectedItem();
+		}
 	}
 }
