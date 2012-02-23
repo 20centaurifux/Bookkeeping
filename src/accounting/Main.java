@@ -30,21 +30,21 @@ public final class Main extends WindowAdapter
 		Main app = new Main();
 		TransactionFrame frame;
 
-        // set look & feel:
+		// set look & feel:
         GuiUtil.setLookAndFeel();
 
         try
         {
-        	// prepare home directory:
+			// prepare home directory:
 			Configuration.prepareHomeDir();
 
-	        // open main window:
+			// open main window:
 			frame = new TransactionFrame();
 			frame.addWindowListener(app);
 			frame.open();
 		}
-        catch(IOException e)
-        {
+		catch(IOException e)
+		{
 			e.printStackTrace();
 		}
 	}
@@ -55,7 +55,7 @@ public final class Main extends WindowAdapter
 		// clear database connection pool:
 		ConnectionPool.getInstance().clear();
 
-        // save configuration:
+		// save configuration:
 		try
 		{
 			Configuration.storeProperties(Configuration.getProperties());
