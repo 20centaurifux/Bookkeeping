@@ -123,7 +123,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 			for(Transaction transaction : transactions)
 			{
 				this.transactions.add(transaction);
-				transaction.addEntityActionListener(this);
+				transaction.addEntityListener(this);
 			}
 
 			sort();
@@ -133,7 +133,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		public void add(Transaction transaction)
 		{
 			this.transactions.add(transaction);
-			transaction.addEntityActionListener(this);
+			transaction.addEntityListener(this);
 			sort();
 			updateTable();
 		}
@@ -499,10 +499,16 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		}
 
 		parts = comboTimeframe.getSelectedItem().toString().split("/", 2);
+
 		calendar = Calendar.getInstance();
 		calendar.set(Calendar.YEAR, Integer.parseInt(parts[0], 10));
 		calendar.set(Calendar.MONTH, Integer.parseInt(parts[1], 10) - 1);
 		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+
 		begin = new Date(calendar.getTime().getTime());
 		calendar.set(Calendar.DATE, calendar.getActualMaximum(Calendar.DATE));
 		end = new Date(calendar.getTime().getTime());
