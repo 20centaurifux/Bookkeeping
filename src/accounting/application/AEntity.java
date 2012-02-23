@@ -25,7 +25,7 @@ import accounting.data.*;
 public abstract class AEntity<T>
 {
 	private T id;
-	private List<IEntityListener> actionListener;
+	private List<IEntityListener> entityListener;
 	private HashMap<String, FieldDefinition> attributes;
 
 	private class FieldDefinition
@@ -47,7 +47,7 @@ public abstract class AEntity<T>
 		Attribute attribute;
 		FieldDefinition definition;
 
-		actionListener = new LinkedList<IEntityListener>();
+		entityListener = new LinkedList<IEntityListener>();
 		attributes = new HashMap<String, AEntity<T>.FieldDefinition>();
 
 		// search for private members declared as "Attribute"
@@ -96,7 +96,7 @@ public abstract class AEntity<T>
 	{
 		update();
 
-		for(IEntityListener l : actionListener)
+		for(IEntityListener l : entityListener)
 		{
 			l.entityUpdated(new EntityEvent((AEntity<?>)this));
 		}		
@@ -106,20 +106,20 @@ public abstract class AEntity<T>
 	{
 		remove();
 
-		for(IEntityListener l : actionListener)
+		for(IEntityListener l : entityListener)
 		{
 			l.entityDeleted(new EntityEvent((AEntity<?>)this));
 		}
 	}
 	
-	public void addEntityActionListener(IEntityListener actionListener)
+	public void addEntityListener(IEntityListener actionListener)
 	{
-		this.actionListener.add(actionListener);
+		this.entityListener.add(actionListener);
 	}
 
 	public void removeEntityListener(IEntityListener actionListener)
 	{
-		this.actionListener.remove(actionListener);
+		this.entityListener.remove(actionListener);
 	}	
 
 	public Object getAttribute(String name) throws AttributeNotFoundException, IllegalAttributeAccessException

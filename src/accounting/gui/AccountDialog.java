@@ -89,7 +89,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 			for(Account account : accounts)
 			{
 				this.accounts.add(account);
-				account.addEntityActionListener(this);
+				account.addEntityListener(this);
 			}
 
 			updateTable();
@@ -98,7 +98,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 		public void add(Account account)
 		{
 			this.accounts.add(account);
-			account.addEntityActionListener(this);
+			account.addEntityListener(this);
 			updateTable();
 		}
 

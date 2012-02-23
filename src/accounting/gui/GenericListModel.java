@@ -34,7 +34,7 @@ public class GenericListModel<T extends Comparable<? super T>> extends AbstractL
 
     	if(item instanceof AEntity<?>)
     	{
-    		((AEntity<?>)item).addEntityActionListener(this);
+    		((AEntity<?>)item).addEntityListener(this);
     	}
 
     	sendListDataEvent();
