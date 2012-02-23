@@ -375,12 +375,9 @@ public class TransferDialog extends ADialog implements ActionListener
 		}
 
 		model.sort();
+		model.selectFirst();
 
-		if(selected == null)
-		{
-			model.selectFirst();
-		}
-		else
+		if(selected != null)
 		{
 			model.setSelectedItem(selected);
 		}
@@ -416,11 +413,11 @@ public class TransferDialog extends ADialog implements ActionListener
 		else
 		{
 			populateCategories(expenditure, selectedCategory);
-
-			if(model.indexOf(selectedCategory) == -1)
-			{
-				model.selectFirst();
-			}
+		}
+	
+		if(comboBox.getSelectedIndex() == -1)
+		{
+			model.selectFirst();
 		}
 	}
 
