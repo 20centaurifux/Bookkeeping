@@ -293,6 +293,12 @@ public class TransactionDialog extends ADialog implements ActionListener
 				comboCategory.setSelectedItem(category);
 			}
 		}
+
+		// select first category if selected category has been removed:
+		if(comboCategory.getSelectedIndex() == -1)
+		{
+			comboCategory.setSelectedIndex(0);
+		}
 	}
 
 	private boolean saveTransaction()
