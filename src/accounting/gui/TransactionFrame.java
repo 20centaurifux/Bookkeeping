@@ -522,6 +522,10 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 
 		begin = new Date(calendar.getTime().getTime());
 		calendar.set(Calendar.DATE, calendar.getActualMaximum(Calendar.DATE));
+		calendar.set(Calendar.HOUR, 23);
+		calendar.set(Calendar.MINUTE, 59);
+		calendar.set(Calendar.SECOND, 59);
+		calendar.set(Calendar.MILLISECOND, 999);
 		end = new Date(calendar.getTime().getTime());
 
 		try

@@ -78,7 +78,7 @@ public class Account extends AEntity<Long> implements Comparable<Account>
 	{
 		Calendar calendar = Calendar.getInstance();
 
-		calendar.set(year, month, 1, 0, 0, 0);
+		calendar.set(year, month, 1, 23, 59, 59);
 		calendar.set(Calendar.DATE, calendar.getActualMaximum(Calendar.DATE));
 
 		return provider.getBalance(getId(), calendar.getTime());
