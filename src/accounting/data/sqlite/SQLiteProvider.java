@@ -767,7 +767,7 @@ public class SQLiteProvider implements IProvider
 		Statement stat;
 
 		// load JDBC driver:
-		Class.forName("SQLite.JDBCDriver");
+		Class.forName("org.sqlite.JDBC");
 	
 		// create tables:
 		conn = pool.getConnection(connectionString);
