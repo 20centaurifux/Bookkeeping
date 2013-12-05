@@ -26,4 +26,4 @@ Requirements
 Bookkeeping requires the following components:
 
 * picocontainer (http://picocontainer.org)
-* SQLite JDBC driver (http://www.ch-werner.de/javasqlite)
+* SQLite JDBC driver (https://bitbucket.org/xerial/sqlite-jdbc)
