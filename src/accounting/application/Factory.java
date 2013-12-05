@@ -17,7 +17,9 @@
 package accounting.application;
 
 import java.util.List;
+
 import org.picocontainer.annotations.Inject;
+
 import accounting.data.*;
 
 public final class Factory
@@ -72,5 +74,20 @@ public final class Factory
 	public List<Account> getAccounts() throws ProviderException
 	{
 		return provider.getAccounts();
+	}
+	
+	public Template createTemplate(String name, Category category, Double amount, String remarks) throws ProviderException
+	{
+		return provider.createTemplate(name, category, amount, remarks);
+	}
+	
+	public Template getTemplate(long id) throws ProviderException
+	{
+		return provider.getTemplate(id);
+	}
+	
+	public List<Template> getTemplates() throws ProviderException
+	{
+		return provider.getTemplates();
 	}
 }

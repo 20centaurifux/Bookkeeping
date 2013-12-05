@@ -513,6 +513,7 @@ public class SQLiteProvider implements IProvider
 		}
 	}
 
+	@Override
 	public List<Account> getAccounts() throws ProviderException
 	{
 		Connection conn = null;
@@ -549,6 +550,7 @@ public class SQLiteProvider implements IProvider
 	/*
 	 * transactions:
 	 */
+	@Override
 	public Transaction createTransaction(Account account, Category category, Date date, Double amount, String no, String remarks) throws ProviderException
 	{
 		Connection conn = null;
@@ -588,6 +590,7 @@ public class SQLiteProvider implements IProvider
 		return transaction;
 	}
 
+	@Override
 	public Transaction getTransaction(long id, Account account) throws ProviderException
 	{
 		Connection conn = null;
@@ -759,6 +762,164 @@ public class SQLiteProvider implements IProvider
 	}
 
 	/*
+	 * templates:
+	 */
+	@Override
+	public Template createTemplate(String name, Category category, Double amount, String remarks) throws ProviderException
+	{
+		Connection conn = null;
+		PreparedStatement stat;
+		Template template = null;
+
+		try
+		{
+			template = pico.getComponent(Template.class);
+			template.setName(name);
+			template.setCategory(category);
+			template.setAmount(amount);
+			template.setRemarks(remarks);
+
+			conn = pool.getConnection(connectionString);
+			stat = prepareStatement(conn, "INSERT INTO template (name, category_id, amount, remarks, deleted) VALUES (?, ?, ?, ?, 0)",
+			                              new Object[]{ name, category.getId(), category.isExpenditure() ? amount * -1 : amount, remarks });
+			stat.execute();
+			template.setId(getLastInsertId(conn));
+			stat.close();
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		catch(AttributeException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+
+		return template;
+	}
+	
+	@Override
+	public Template getTemplate(long id) throws ProviderException
+	{
+		Connection conn = null;
+		PreparedStatement stat;
+		ResultSet result;
+		Template template = null;
+		Category category;
+
+		try
+		{
+			conn = pool.getConnection(connectionString);
+			stat = prepareStatement(conn, "SELECT template.name, template.amount, template.remarks, category_id, category.description, category.expenditure " +
+			                              "FROM template INNER JOIN category ON category_id=category.id WHERE template.deleted=0 AND template.id=?", new Object[] { id });
+			result = stat.executeQuery();
+
+			if(result.next())
+			{
+				template = pico.getComponent(Template.class);
+				template.setId(id);
+				template.setName(result.getString(1));
+				template.setAmount(result.getDouble(2));
+				template.setRemarks(result.getString(3));
+
+				category = pico.getComponent(Category.class);
+				category.setId(result.getLong(4));
+				category.setName(result.getString(5));
+				category.setExpenditure(result.getBoolean(6));
+				template.setCategory(category);
+			}
+			else
+			{
+				throw new ProviderException("Couldn't find template.");
+			}
+
+			result.close();
+			stat.close();
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		catch(AttributeException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+
+		return template;
+	}
+	
+	@Override
+	public void updateTemplate(Template template) throws ProviderException
+	{
+		Connection conn = null;
+
+		try
+		{
+			conn = pool.getConnection(connectionString);
+			prepareAndExecuteStatement(conn, "UPDATE template SET name=?, category_id=?, amount=?, remarks=? WHERE id=?",
+                    new Object[]{ template.getName(), template.getCategory().getId(),
+					              template.getCategory().isExpenditure() ? template.getRebate() * -1 : template.getIncome(),
+					            		  template.getRemarks(), template.getId() });
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+	}
+	
+	@Override
+	public void deleteTemplate(long id) throws ProviderException
+	{
+		deleteEntity("template", id);
+	}
+	
+	@Override
+	public List<Template> getTemplates() throws ProviderException
+	{
+		Connection conn = null;
+		Statement stat;
+		ResultSet result;
+		LinkedList<Template> templates = new LinkedList<Template>();
+
+		try
+		{
+			conn = pool.getConnection(connectionString);
+			stat = conn.createStatement();
+			result = stat.executeQuery("SELECT id FROM template WHERE deleted=0 ORDER BY name");
+
+			while(result.next())
+			{
+				templates.add(getTemplate(result.getLong(1)));
+			}
+
+			result.close();
+			stat.close();
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+
+		return templates;
+	}
+
+	/*
 	 *	database initialization:
 	 */
 	private void init() throws ClassNotFoundException, SQLException
@@ -776,6 +937,7 @@ public class SQLiteProvider implements IProvider
 		stat.execute("CREATE TABLE IF NOT EXISTS currency (id INTEGER PRIMARY KEY, description VARCHAR(32) NOT NULL, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS category (id INTEGER PRIMARY KEY, description VARCHAR(32) NOT NULL, expenditure BIT, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS record (id INTEGER PRIMARY KEY, account_id INT NOT NULL, category_id INT NOT NULL, date INT, amount REAL, no VARCHAR(32), remarks VARCHAR(512), deleted INTEGER)");
+		stat.execute("CREATE TABLE IF NOT EXISTS template (id INTEGER PRIMARY KEY, name VARCHAR(32), category_id INT NOT NULL, amount REAL, remarks VARCHAR(512), deleted INTEGER)");
 
 		// close connection:
 		stat.close();
