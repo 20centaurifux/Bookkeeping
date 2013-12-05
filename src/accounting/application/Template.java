@@ -17,6 +17,9 @@
 package accounting.application;
 
 import java.util.Date;
+import java.util.Calendar;
+
+import sun.security.action.GetLongAction;
 
 import accounting.application.annotation.*;
 import accounting.data.ProviderException;
@@ -126,5 +129,17 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 	public int compareTo(Template template)
 	{
 		return getId().compareTo(template.getId());
+	}
+
+	public Transaction createTransaction(Account account) throws ProviderException
+	{
+		String remarks = this.remarks;
+		
+		if(remarks.isEmpty())
+		{
+			remarks = name;
+		}
+
+		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), amount, null, remarks);
 	}
 }

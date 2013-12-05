@@ -40,6 +40,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	private JButton buttonAdd;
 	private JButton buttonDelete;
 	private JButton buttonTransfer;
+	private JButton buttonTemplates;
 	private JPanel panelOpeningBalance;
 	private JLabel labelOpeningBalance;
 	private JPanel panelClosingBalance;
@@ -275,6 +276,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 
 		menu = new JMenu("File");
 		menuBar.add(menu);
+		
 		menuItem = new JMenuItem("Close");
 		menuItem.setName("File_Close");
 		menuItem.addActionListener(this);
@@ -282,12 +284,19 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	
 		menu = new JMenu("Accounting");
 		menuBar.add(menu);
+		
 		menuItem = new JMenuItem("New transaction");
 		menuItem.setName("Accounting_NewTransaction");
 		menuItem.addActionListener(this);
 		menu.add(menuItem);
+		
 		menuItem = new JMenuItem("Transfer");
 		menuItem.setName("Accounting_Transfer");
+		menuItem.addActionListener(this);
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Edit Templates");
+		menuItem.setName("Accounting_EditTemplates");
 		menuItem.addActionListener(this);
 		menu.add(menuItem);
 	}
@@ -420,7 +429,12 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		buttonTransfer.setName("buttonTransfer");
 		buttonTransfer.addActionListener(this);
 		panel.add(buttonTransfer);
-		
+
+		buttonTemplates = new JButton("Templates");
+		buttonTemplates.setName("buttonTemplates");
+		buttonTemplates.addActionListener(this);
+		panel.add(buttonTemplates);
+
 		buttonDelete = new JButton("Delete");
 		buttonDelete.setName("buttonDelete");
 		buttonDelete.addActionListener(this);
@@ -694,6 +708,60 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	}
 
 	/*
+	 * templates:
+	 */
+	private void editTemplates()
+	{
+		TemplateDialog dialog;
+		
+		dialog = new TemplateDialog(this, null);
+		dialog.addCategoryListener(this);
+		
+		dialog.open();
+	}
+
+	private void showTemplates()
+	{
+		TemplateSelectionDialog dialog;
+		List<Template> templates;
+		Transaction transaction;
+		TransactionTableModel model;
+		Account account;
+		
+		dialog = new TemplateSelectionDialog(this, translation.translate("Select template(s)"));
+		dialog.open();
+		
+		if(dialog.getResult() == TemplateSelectionDialog.RESULT_OK)
+		{
+			templates = dialog.getSelectedTemplates();
+			
+			model = (TransactionTableModel)tableTransactions.getModel();
+			account = (Account)comboAccount.getSelectedItem();
+			
+			if(templates.size() > 0)
+			{
+				if(JOptionPane.showConfirmDialog(this, String.format(translation.translate("Do you really want to create %d new transaction(s)?"), templates.size())) == JOptionPane.YES_OPTION)
+				{
+					try
+					{
+						for(Template t : dialog.getSelectedTemplates())
+						{
+							transaction = t.createTransaction(account);
+							model.add(transaction);
+							updateTransaction(transaction);
+						}
+					}
+					catch(ProviderException e)
+					{
+						JOptionPane.showMessageDialog(this, "Couldn't create transaction.", "Warning", JOptionPane.ERROR_MESSAGE);
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	/*
 	 * edit accounts:
 	 */
 	private void editAccounts()
@@ -706,7 +774,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 
 		if(dialog.getResult() == AccountDialog.RESULT_APPLY)
 		{
-			comboAccount.setSelectedItem(dialog.getSelectedAccount());
+			comboAccount.getModel().setSelectedItem(dialog.getSelectedAccount());
 		}
 	}	
 
@@ -793,6 +861,10 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
             {
             	transfer();
             }
+            else if(((JComponent)event.getSource()).getName().equals("Accounting_EditTemplates"))
+            {
+            	editTemplates();
+            }
             else if(event.getSource().equals(buttonDelete))
             {
             	deleteSelectedTransaction();
@@ -800,6 +872,10 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
         	else if(event.getSource().equals(buttonAccounts))
         	{
         		editAccounts();
+        	}
+        	else if(event.getSource().equals(buttonTemplates))
+        	{
+        		showTemplates();
         	}
         }
         else if(event.getSource().equals(comboAccount))

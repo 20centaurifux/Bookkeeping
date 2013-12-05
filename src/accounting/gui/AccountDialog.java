@@ -617,7 +617,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 			textName.setText(account.getName());
 			areaRemarks.setText(account.getRemarks());
 			comboCurrency.removeActionListener(this);
-			comboCurrency.setSelectedItem(account.getCurrency());
+			comboCurrency.getModel().setSelectedItem(account.getCurrency());
 			comboCurrency.addActionListener(this);
 		}
 	}
@@ -735,7 +735,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 
 		if(dialog.getResult() == CurrencyDialog.RESULT_OK)
 		{
-			comboCurrency.setSelectedItem(dialog.getSelectedCurrency());
+			comboCurrency.getModel().setSelectedItem(dialog.getSelectedCurrency());
 		}
 	}
 }

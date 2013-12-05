@@ -28,7 +28,6 @@ import accounting.data.ProviderException;
 
 public class TemplateDialog extends ADialog implements ActionListener
 {
-	public static final int RESULT_DELETE = 0;
 	public static final int RESULT_OK = 1;
 
 	private static final long serialVersionUID = 6261344341258703750L;
@@ -39,7 +38,7 @@ public class TemplateDialog extends ADialog implements ActionListener
     private JButton buttonEdit;
     private JButton buttonDelete;
     private JButton buttonOk;
-	private int result = RESULT_DELETE;
+	private int result = RESULT_OK;
 	private Vector<ITemplateListener> listener = new Vector<ITemplateListener>();
 	private Vector<ICategoryListener> categoryListener = new Vector<ICategoryListener>();
 	private Translation translation = new Translation();
@@ -162,8 +161,9 @@ public class TemplateDialog extends ADialog implements ActionListener
 	{
 		EditTemplateDialog dialog;
 		Template template;
+		EntityEvent ev;
 		
-		dialog = new EditTemplateDialog(null, "Edit template");
+		dialog = new EditTemplateDialog(null, translation.translate("Add template"));
 		
 		for(ICategoryListener l : categoryListener)
 		{
@@ -178,9 +178,11 @@ public class TemplateDialog extends ADialog implements ActionListener
 			((GenericListModel<Template>)listEntries.getModel()).add(template);
 			listEntries.setSelectedValue(template, true);
 			
+			ev = new EntityEvent(template);
+			
 			for(ITemplateListener l : listener)
 			{
-				l.templateAdded(new EntityEvent(template));
+				l.templateAdded(ev);
 			}
 		}
 	}
@@ -213,38 +215,32 @@ public class TemplateDialog extends ADialog implements ActionListener
 					l.templateChanged(ev);
 				}
 			}
-			
-			//((GenericListModel<Template>)listEntries.getModel()).sort();
 		}
 	}
 
 	private void deleteSelectedTemplate()
 	{
-		/*
-		Currency currency;
+		Template template;
+		EntityEvent ev;
 
-		if((currency = getSelectedCurrency()) != null)
+		if((template= getSelectedTemplate()) != null)
 		{
-			if(listEntries.getModel().getSize() == 1)
-			{
-				JOptionPane.showMessageDialog(this, translation.translate("You cannot delete the last currency."), translation.translate("Warning"), JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			
-			if(JOptionPane.showConfirmDialog(this, translation.translate("Do you really want to delete the selected currency?")) == JOptionPane.YES_OPTION)
+			if(JOptionPane.showConfirmDialog(this, translation.translate("Do you really want to delete the selected template?")) == JOptionPane.YES_OPTION)
 			{
 				try
 				{
-					currency.delete();
+					template.delete();
 
-					for(ICurrencyListener listener : this.listener)
+					ev = new EntityEvent(template);
+					
+					for(ITemplateListener listener : this.listener)
 					{
-						listener.currencyDeleted(new EntityEvent(currency));
+						listener.templateDeleted(ev);
 					}
 				}
 				catch(ReferenceException e)
 				{
-					JOptionPane.showMessageDialog(this, translation.translate("Cannot delete currency, object is still in use."), translation.translate("Warning"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(this, translation.translate("Cannot delete template, object is still in use."), translation.translate("Warning"), JOptionPane.ERROR_MESSAGE);
 				}
 				catch(ProviderException e)
 				{
@@ -253,7 +249,6 @@ public class TemplateDialog extends ADialog implements ActionListener
 				}
 			}    
 		}
-		*/
 	}
 
 	private void populateTemplates()
@@ -300,6 +295,11 @@ public class TemplateDialog extends ADialog implements ActionListener
 	public void addTemplateListener(ITemplateListener listener)
 	{
 		this.listener.add(listener);
+	}
+	
+	public void removeTemplateListener(ITemplateListener listener)
+	{
+		this.listener.remove(listener);
 	}
 
 	public void addCategoryListener(ICategoryListener listener)

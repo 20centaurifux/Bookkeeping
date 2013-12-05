@@ -79,7 +79,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 
 			if(lastCategory != null)
 			{
-				comboCategory.setSelectedItem(lastCategory);
+				comboCategory.getModel().setSelectedItem(lastCategory);
 			}
 
 			if(comboCategory.getSelectedIndex() == -1)
@@ -271,7 +271,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 	{
 		textNo.setText(transaction.getNo());
 		textAccount.setText(transaction.getAccount().getName());
-		comboCategory.setSelectedItem(transaction.getCategory());
+		comboCategory.getModel().setSelectedItem(transaction.getCategory());
 		spinnerDate.setValue(transaction.getDate());
 		spinnerAmount.setValue(transaction.getCategory().isExpenditure() ? transaction.getRebate() : transaction.getIncome());
 		areaRemarks.setText(transaction.getRemarks());
@@ -303,7 +303,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 		{
 			if((category = dialog.getSelectedCategory()) != null)
 			{
-				comboCategory.setSelectedItem(category);
+				comboCategory.getModel().setSelectedItem(category);
 			}
 		}
 
