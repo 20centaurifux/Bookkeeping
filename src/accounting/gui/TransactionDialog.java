@@ -20,9 +20,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Calendar;
 import java.util.Vector;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
 import org.picocontainer.PicoContainer;
+
 import accounting.Injection;
 import accounting.Translation;
 import accounting.application.*;
@@ -76,6 +79,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 
 			textAccount.setText(account.getName());
 			spinnerDate.setValue(Calendar.getInstance().getTime());
+			textNo.setText(account.nextNo());
 
 			if(lastCategory != null)
 			{

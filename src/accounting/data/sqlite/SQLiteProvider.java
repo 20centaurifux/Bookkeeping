@@ -363,7 +363,7 @@ public class SQLiteProvider implements IProvider
 	 * accounts:
 	 */
 	@Override
-	public Account createAccount(String name, String remarks, Currency currency) throws ProviderException
+	public Account createAccount(String name, String remarks, Currency currency, String noPrefix, int currentNo) throws ProviderException
 	{
 		Connection conn = null;
 		PreparedStatement stat;
@@ -375,9 +375,12 @@ public class SQLiteProvider implements IProvider
 			account.setName(name);
 			account.setRemarks(remarks);
 			account.setCurrency(currency);
+			account.setNoPrefix(noPrefix);
+			account.setCurrentNo(currentNo);
 			
 			conn = pool.getConnection(connectionString);
-			stat = prepareStatement(conn, "INSERT INTO account (name, remarks, currency_id, deleted) VALUES (?, ?, ?, 0)", new Object[]{ name, remarks, currency == null ? null : currency.getId() });
+			stat = prepareStatement(conn, "INSERT INTO account (name, remarks, currency_id, no_prefix, no_current, deleted) VALUES (?, ?, ?, ?, ?, 0)",
+					                       new Object[]{ name, remarks, currency == null ? null : currency.getId(), noPrefix, currentNo });
 			stat.execute();
 			account.setId(getLastInsertId(conn));
 			stat.close();
@@ -410,7 +413,7 @@ public class SQLiteProvider implements IProvider
 		try
 		{
 			conn = pool.getConnection(connectionString);
-			stat = prepareStatement(conn, "SELECT account.name, remarks, currency_id, description FROM account LEFT JOIN currency ON account.currency_id=currency.id WHERE account.id=? AND account.deleted=0", new Object[] { id });
+			stat = prepareStatement(conn, "SELECT account.name, remarks, no_prefix, no_current, currency_id, description FROM account LEFT JOIN currency ON account.currency_id=currency.id WHERE account.id=? AND account.deleted=0", new Object[] { id });
 			result = stat.executeQuery();
 
 			if(result.next())
@@ -419,12 +422,14 @@ public class SQLiteProvider implements IProvider
 				account.setId(id);
 				account.setName(result.getString(1));
 				account.setRemarks(result.getString(2));
+				account.setNoPrefix(result.getString(3));
+				account.setCurrentNo(result.getInt(4));
 
-				if(result.getObject(3) != null)
+				if(result.getObject(5) != null)
 				{
 					currency = pico.getComponent(Currency.class);
-					currency.setId(result.getLong(3));
-					currency.setName(result.getString(4));
+					currency.setId(result.getLong(5));
+					currency.setName(result.getString(6));
 					account.setCurrency(currency);
 				}
 			}
@@ -460,7 +465,8 @@ public class SQLiteProvider implements IProvider
 		try
 		{
 			conn = pool.getConnection(connectionString);
-			prepareAndExecuteStatement(conn, "UPDATE account SET name=?, remarks=?, currency_id=? WHERE id=?", new Object[]{ account.getName(), account.getRemarks(), account.getCurrency() == null ? null : account.getCurrency().getId(), account.getId() });
+			prepareAndExecuteStatement(conn, "UPDATE account SET name=?, remarks=?, currency_id=?, no_prefix=?, no_current=? WHERE id=?",
+					                         new Object[]{ account.getName(), account.getRemarks(), account.getCurrency() == null ? null : account.getCurrency().getId(), account.getNoPrefix(), account.getCurrentNo(), account.getId() });
 		}
 		catch(SQLException e)
 		{
@@ -762,6 +768,25 @@ public class SQLiteProvider implements IProvider
 	}
 
 	/*
+	 * transactions nos:
+	 */
+	@Override
+	public boolean transactionNoExists(String no) throws ProviderException
+	{
+		Object result;
+
+		if((result = executeScalar("SELECT COUNT(id) FROM record WHERE deleted=0 AND no=?", new Object[]{ no })) != null)
+		{
+			if((int)result > 0)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/*
 	 * templates:
 	 */
 	@Override
@@ -933,7 +958,7 @@ public class SQLiteProvider implements IProvider
 		// create tables:
 		conn = pool.getConnection(connectionString);
 		stat = conn.createStatement();
-		stat.execute("CREATE TABLE IF NOT EXISTS account (id INTEGER PRIMARY KEY, name VARCHAR(32) NOT NULL, remarks VARCHAR(512), currency_id INT, deleted INTEGER)");
+		stat.execute("CREATE TABLE IF NOT EXISTS account (id INTEGER PRIMARY KEY, name VARCHAR(32) NOT NULL, remarks VARCHAR(512), no_prefix VARCHAR(32), no_current INTEGER, currency_id INT, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS currency (id INTEGER PRIMARY KEY, description VARCHAR(32) NOT NULL, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS category (id INTEGER PRIMARY KEY, description VARCHAR(32) NOT NULL, expenditure BIT, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS record (id INTEGER PRIMARY KEY, account_id INT NOT NULL, category_id INT NOT NULL, date INT, amount REAL, no VARCHAR(32), remarks VARCHAR(512), deleted INTEGER)");
@@ -955,7 +980,7 @@ public class SQLiteProvider implements IProvider
 		if(((Integer)executeScalar("SELECT COUNT(id) FROM account", null)) == 0)
 		{
 			currency = createCurrency("Euro");
-			createAccount(translation.translate("Cash"), "", currency);
+			createAccount(translation.translate("Cash"), "", currency, null, 1);
 			createCategory(translation.translate("Books"), true);
 			createCategory(translation.translate("Car"), true);
 			createCategory(translation.translate("Clothes"), true);

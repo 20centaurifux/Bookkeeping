@@ -21,10 +21,12 @@ import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
+
 import accounting.*;
 import accounting.application.*;
 import accounting.data.*;
@@ -45,6 +47,8 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 	private JTextField textName;
 	private JComboBox comboCurrency;
 	private JButton buttonCurrency;
+	private JTextField textNoPrefix;
+	private JSpinner spinnerCurrentNo;
 	private JTextArea areaRemarks;
 	private Container contentPane;
 	private int result;
@@ -228,6 +232,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 		JLabel label;
 		JLabel labelName;
 		JLabel labelCurrency;
+		JLabel labelFormat;
 		TableColumnModel columns;
 
 		translation = new Translation();
@@ -319,6 +324,25 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 		buttonCurrency.addActionListener(this);
 		panel.add(buttonCurrency);
 
+		// no format:
+		panelContent.add(Box.createHorizontalBox());
+		panel = new JPanel();
+		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		panelContent.add(panel);
+
+		labelFormat = new JLabel("No. prefix:");
+		panel.add(labelFormat);
+		textNoPrefix = new JTextField();
+		textNoPrefix.setName("textName");
+		GuiUtil.setPreferredWidth(textNoPrefix, 80);
+		panel.add(textNoPrefix);
+		labelFormat = new JLabel("Current No.:");
+		panel.add(labelFormat);
+		spinnerCurrentNo = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 10));
+		spinnerCurrentNo.setEditor(new JSpinner.NumberEditor(spinnerCurrentNo, "0"));
+		spinnerCurrentNo.setName("spinnerCurrentNo");
+		panel.add(spinnerCurrentNo);
+		
 		// remarks:
 		panelContent.add(Box.createHorizontalBox());
 		panel = new JPanel();
@@ -531,6 +555,16 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 			return true;
 		}
 
+		if(!(textNoPrefix.getText().isEmpty() && account.getNoPrefix() == null) && !textNoPrefix.getText().equals(account.getNoPrefix()))
+		{
+			return true;
+		}
+		
+		if(account.getCurrentNo() != (Integer)spinnerCurrentNo.getModel().getValue())
+		{
+			return true;
+		}
+
 		return false;
 	}
 
@@ -557,6 +591,24 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 			message = "The entered name is invalid, please check your data.";
 		}
 
+		try
+		{
+			account.setNoPrefix(textNoPrefix.getText());
+		}
+		catch(AttributeException e)
+		{
+			message = "The entered prefix is invalid, please check your data.";
+		}
+		
+		try
+		{
+			account.setCurrentNo((Integer)spinnerCurrentNo.getModel().getValue());
+		}
+		catch(AttributeException e)
+		{
+			message = "The entered prefix length is invalid, please check your data.";
+		}
+		
 		if(message == null)
 		{
 			try
@@ -616,6 +668,8 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 		{
 			textName.setText(account.getName());
 			areaRemarks.setText(account.getRemarks());
+			textNoPrefix.setText(account.getNoPrefix());
+			spinnerCurrentNo.setValue(account.getCurrentNo());
 			comboCurrency.removeActionListener(this);
 			comboCurrency.getModel().setSelectedItem(account.getCurrency());
 			comboCurrency.addActionListener(this);
@@ -664,7 +718,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 		{
 			try
 			{
-				account = factory.createAccount(name, "", (Currency)comboCurrency.getModel().getElementAt(0));
+				account = factory.createAccount(name, "", (Currency)comboCurrency.getModel().getElementAt(0), textNoPrefix.getText(), (Integer)spinnerCurrentNo.getModel().getValue());
 				model.add(account);
 				model.sort();
 				selectAccount(account);

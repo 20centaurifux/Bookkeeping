@@ -989,6 +989,8 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 					account.setName(source.getName());
 					account.setRemarks(source.getRemarks());
 					account.setCurrency(source.getCurrency());
+					account.setNoPrefix(source.getNoPrefix());
+					account.setCurrentNo(source.getCurrentNo());
 					model.sort();
 					((TransactionTableModel)tableTransactions.getModel()).fireTableDataChanged();
 					changeBalanceCurrency(account.getCurrency());

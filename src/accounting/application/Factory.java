@@ -61,9 +61,9 @@ public final class Factory
 		return provider.countCategories(expenditure);
 	}
 
-	public Account createAccount(String name, String remarks, Currency currency) throws ProviderException
+	public Account createAccount(String name, String remarks, Currency currency, String noPrefix, int currentNo) throws ProviderException
 	{
-		return provider.createAccount(name, remarks, currency);
+		return provider.createAccount(name, remarks, currency, noPrefix, currentNo);
 	}
 
 	public Account getAccount(long id) throws ProviderException
