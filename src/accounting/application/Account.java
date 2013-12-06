@@ -143,7 +143,13 @@ public class Account extends AEntity<Long> implements Comparable<Account>
 	public String nextNo()
 	{
 		String no = null;
+		String prefix = "";
 		int i = currentNo - 1;
+		
+		if(noPrefix != null)
+		{
+			prefix = noPrefix;
+		}
 		
 		try
 		{
@@ -154,7 +160,7 @@ public class Account extends AEntity<Long> implements Comparable<Account>
 					return null;
 				}
 
-				no = String.format("%s%d", noPrefix, ++i);
+				no = String.format("%s%d", prefix, ++i);
 			} while(provider.transactionNoExists(no));
 			
 			if(i != currentNo + 1)
