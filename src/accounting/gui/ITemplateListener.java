@@ -14,14 +14,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
     General Public License for more details.
  ***************************************************************************/
-package accounting;
+package accounting.gui;
 
-public final class AppInfo
+import accounting.application.*;
+
+public interface ITemplateListener
 {
-	public static String TITLE = "Bookkeeping";
-	public static int VERSION_MAJOR = 0;
-	public static int VERSION_MINOR = 1;
-	public static int VERSION_PATCHLEVEL = 1;
-	public static String AUTHOR = "Sebsatian Fedrau";
-	public static String AUTHOR_EMAIL = "sebastian.fedrau@gmail.com";
+	void templateChanged(EntityEvent event);
+	void templateDeleted(EntityEvent event);
+	void templateAdded(EntityEvent event);
 }

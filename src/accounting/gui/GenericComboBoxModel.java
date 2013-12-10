@@ -34,21 +34,18 @@ public class GenericComboBoxModel<T extends Comparable<? super T>> extends Gener
 	@Override
 	public void setSelectedItem(Object item)
 	{
-		if(!item.equals(selectedItem))
+		for(int i = 0; i < this.getSize(); ++i)
 		{
-			for(int i = 0; i < this.getSize(); ++i)
+			if(getElementAt(i).equals(item))
 			{
-				if(getElementAt(i).equals(item))
-				{
-					selectedItem = (T)getElementAt(i);				
-					break;
-				}
+				selectedItem = (T)getElementAt(i);
+				break;
 			}
+		}
 
-			for(ListDataListener listener : this.listener)
-			{
-				listener.contentsChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, getSize()));
-			}
+		for(ListDataListener listener : this.listener)
+		{
+			listener.contentsChanged(new ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, getSize()));
 		}
 	}
 
@@ -57,6 +54,14 @@ public class GenericComboBoxModel<T extends Comparable<? super T>> extends Gener
 		if(getSize() > 0)
 		{
 			setSelectedItem(getElementAt(0));
+		}
+	}
+	
+	public void selectLast()
+	{
+		if(getSize() > 0)
+		{
+			setSelectedItem(getElementAt(getSize() - 1));
 		}
 	}
 }

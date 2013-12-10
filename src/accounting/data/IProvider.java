@@ -18,6 +18,7 @@ package accounting.data;
 
 import java.util.Date;
 import java.util.List;
+
 import accounting.application.*;
 
 public interface IProvider
@@ -35,7 +36,7 @@ public interface IProvider
 	List<Category> getCategories(boolean expenditure) throws ProviderException;
 	int countCategoryReferences(long id) throws ProviderException;
 	int countCategories(boolean expenditure) throws ProviderException;
-	Account createAccount(String name, String remarks, Currency currency) throws ProviderException;
+	Account createAccount(String name, String remarks, Currency currency, String noPrefix, int noLength) throws ProviderException;
 	Account getAccount(long id) throws ProviderException;
 	void updateAccount(Account account) throws ProviderException;
 	void deleteAccount(long id) throws ProviderException;
@@ -47,4 +48,10 @@ public interface IProvider
 	void deleteTransaction(long id) throws ProviderException;
 	List<Long> getTimestamps(long accountId) throws ProviderException;
 	double getBalance(long accountId, Date date) throws ProviderException;
+	boolean transactionNoExists(String no) throws ProviderException;
+	Template createTemplate(String name, Category category, Double amount, String remarks) throws ProviderException;
+	Template getTemplate(long id) throws ProviderException;
+	void updateTemplate(Template template) throws ProviderException;
+	void deleteTemplate(long id) throws ProviderException;
+	List<Template> getTemplates() throws ProviderException;
 }

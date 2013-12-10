@@ -46,6 +46,7 @@ public final class Injection
 		pico.addComponent(Category.class);
 		pico.addComponent(Account.class);
 		pico.addComponent(Transaction.class);
+		pico.addComponent(Template.class);
 
 		return pico;
 	}	

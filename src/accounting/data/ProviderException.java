@@ -26,7 +26,7 @@ public class ProviderException extends Exception
 	{
 		super(message);
 	}
-
+	
 	public ProviderException(Throwable throwable)
 	{
 		super(throwable);

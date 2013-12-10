@@ -32,6 +32,12 @@ public class Account extends AEntity<Long> implements Comparable<Account>
 	@Attribute(name="Currency", readable=true, writeable=true)
 	@ObjectValidator(allowNull=false)
 	private Currency currency;
+	@Attribute(name="NoPrefix", readable=true, writeable=true)
+	@StringValidator(allowNull=true, minLength=0, maxLength=32)
+	private String noPrefix;
+	@Attribute(name="CurrentNo", readable=true, writeable=true)
+	@IntValidator(allowNull=false, min=0, max=Integer.MAX_VALUE)
+	private Integer currentNo;
 
 	@Override
 	protected void update() throws ProviderException
@@ -112,6 +118,63 @@ public class Account extends AEntity<Long> implements Comparable<Account>
 	public void setCurrency(Currency currency) throws AttributeException
 	{
 		setAttribute("Currency", currency);
+	}
+
+	public String getNoPrefix()
+	{
+		return getString("NoPrefix");
+	}
+	
+	public void setNoPrefix(String prefix) throws AttributeException
+	{
+		setAttribute("NoPrefix", prefix);
+	}
+	
+	public int getCurrentNo()
+	{
+		return getInt("CurrentNo");
+	}
+	
+	public void setCurrentNo(int no) throws AttributeException
+	{
+		setAttribute("CurrentNo", no);
+	}
+
+	public String nextNo()
+	{
+		String no = null;
+		String prefix = "";
+		int i = currentNo - 1;
+		
+		if(noPrefix != null)
+		{
+			prefix = noPrefix;
+		}
+		
+		try
+		{
+			do
+			{
+				if(i == Integer.MAX_VALUE)
+				{
+					return null;
+				}
+
+				no = String.format("%s%d", prefix, ++i);
+			} while(provider.transactionNoExists(no));
+			
+			if(i != currentNo + 1)
+			{
+				currentNo = i;
+				update();
+			}
+		}
+		catch(ProviderException e)
+		{
+			e.printStackTrace();
+		}
+		
+		return no;
 	}
 
 	@Override

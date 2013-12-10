@@ -219,6 +219,18 @@ public abstract class AEntity<T>
 		}
 	}
 
+	protected Integer getInt(String attribute)
+	{
+		try
+		{
+			return (Integer)getAttribute(attribute);
+		}
+		catch(Exception e)
+		{
+			return 0;
+		}
+	}
+	
 	protected Object getObject(String attribute)
 	{
 		try

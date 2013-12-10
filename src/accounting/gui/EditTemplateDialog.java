@@ -31,7 +31,7 @@ import accounting.Translation;
 import accounting.application.*;
 import accounting.data.*;
 
-public class TransactionDialog extends ADialog implements ActionListener
+public class EditTemplateDialog extends ADialog implements ActionListener
 {
 	public static final int RESULT_CLOSE = 0;
 	public static final int RESULT_APPLY = 1;
@@ -41,8 +41,8 @@ public class TransactionDialog extends ADialog implements ActionListener
 	private static Category lastCategory = null;
 	private Factory factory;
 	private Container contentPane;
-	private Transaction transaction;
-	private JTextField textNo;
+	private Template template;
+	private JTextField textName;
 	private JComboBox comboCategory;
 	private JTextArea areaRemarks;
 	private JButton buttonClose;
@@ -54,36 +54,29 @@ public class TransactionDialog extends ADialog implements ActionListener
 	private int result = RESULT_CLOSE;
 	private Vector<ICategoryListener> listener = new Vector<ICategoryListener>();
 	private Translation translation;
-	private Account account;
 	private boolean saveLastCategory = false;
 
-	public TransactionDialog(JFrame parent, String title, Transaction transaction)
+	public EditTemplateDialog(JFrame parent, String title, Template template)
 	{
 			super(parent, title);
 
-			this.transaction = transaction;
-			account = transaction.getAccount();
+			this.template = template;
 
 			populateCategoryBox();
-			populateTransaction();
+			populateTemplate();
     }
 
-	public TransactionDialog(JFrame parent, String title, Account account)
+	public EditTemplateDialog(JFrame parent, String title)
 	{
 			super(parent, title);
 
-			this.account = account;
-			transaction = null;
+			template = null;
 
 			populateCategoryBox();
-
-			textAccount.setText(account.getName());
-			spinnerDate.setValue(Calendar.getInstance().getTime());
-			textNo.setText(account.nextNo());
 
 			if(lastCategory != null)
 			{
-				comboCategory.getModel().setSelectedItem(lastCategory);
+				comboCategory.setSelectedItem(lastCategory);
 			}
 
 			if(comboCategory.getSelectedIndex() == -1)
@@ -99,9 +92,9 @@ public class TransactionDialog extends ADialog implements ActionListener
 		return result;
 	}
 
-	public Transaction getTransaction()
+	public Template getTemplate()
 	{
-		return transaction;
+		return template;
 	}
 
 	protected void initialize()
@@ -144,43 +137,19 @@ public class TransactionDialog extends ADialog implements ActionListener
 		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		panelContent.add(panel);
 
-		label = new JLabel("Account:");
-		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
-		textAccount = new JTextField();
-		textAccount.setName("textAccount");
-		textAccount.setEnabled(false);
-		GuiUtil.setPreferredWidth(textAccount, 250);
-		panel.add(textAccount);        
-
-		// date:
+		// name:
 		panelContent.add(Box.createHorizontalBox());
 		panel = new JPanel();
 		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		panelContent.add(panel);
 
-		label = new JLabel("Date:");
+		label = new JLabel("Name:");
 		panel.add(label);
 		GuiUtil.setPreferredWidth(label, 70);
-		spinnerDate = new JSpinner(new SpinnerDateModel());
-		spinnerDate.setEditor(new JSpinner.DateEditor(spinnerDate, "dd.MM.yyyy HH:mm:ss"));
-		spinnerDate.setName("spinnerDate");
-		GuiUtil.setPreferredWidth(spinnerDate, 250);
-		panel.add(spinnerDate);
-
-		// no:
-		panelContent.add(Box.createHorizontalBox());
-		panel = new JPanel();
-		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		panelContent.add(panel);
-
-		label = new JLabel("No:");
-		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
-		textNo = new JTextField();
-		textNo.setHorizontalAlignment(JTextField.RIGHT);
-		GuiUtil.setPreferredWidth(textNo, 250);
-		panel.add(textNo);
+		textName = new JTextField();
+		textName.setHorizontalAlignment(JTextField.LEFT);
+		GuiUtil.setPreferredWidth(textName, 250);
+		panel.add(textName);
 
 		// category:
 		panelContent.add(Box.createHorizontalBox());
@@ -271,14 +240,12 @@ public class TransactionDialog extends ADialog implements ActionListener
 		}
 	}
 
-	private void populateTransaction()
+	private void populateTemplate()
 	{
-		textNo.setText(transaction.getNo());
-		textAccount.setText(transaction.getAccount().getName());
-		comboCategory.getModel().setSelectedItem(transaction.getCategory());
-		spinnerDate.setValue(transaction.getDate());
-		spinnerAmount.setValue(transaction.getCategory().isExpenditure() ? transaction.getRebate() : transaction.getIncome());
-		areaRemarks.setText(transaction.getRemarks());
+		textName.setText(template.getName());
+		comboCategory.setSelectedItem(template.getCategory());
+		spinnerAmount.setValue(template.getCategory().isExpenditure() ? template.getRebate() : template.getIncome());
+		areaRemarks.setText(template.getRemarks());
 	}
 
 	private void close(int resultCode)
@@ -318,46 +285,40 @@ public class TransactionDialog extends ADialog implements ActionListener
 		}
 	}
 
-	private boolean saveTransaction()
+	private boolean saveTemplate()
 	{
 		String message = null;
 
-		if(transaction == null)
+		if(template == null)
 		{
 			try
 			{
-				transaction = account.createTransaction(factory.getCategories(true).get(0), Calendar.getInstance().getTime(), 0.0, null, null);
+				template = factory.createTemplate(textName.getText(),
+				                                  (Category)comboCategory.getSelectedItem(), 
+				                                  ((SpinnerNumberModel)spinnerAmount.getModel()).getNumber().doubleValue(),
+				                                  areaRemarks.getText());
 			}
 			catch(ProviderException e)
 			{
-				message = "Couldn't save transaction, an internal error occured. Please try again later.";
+				message = "Couldn't save template, an internal error occured. Please try again later.";
 				e.printStackTrace();
 			}
 		}
 
-		if(transaction != null)
-		{
+		if(template != null)
+		{	
 			try
 			{
-				transaction.setDate(((SpinnerDateModel)spinnerDate.getModel()).getDate());
+				template.setName(textName.getText());
 			}
 			catch(AttributeException e)
 			{
-				message = "The given date is invalid, please check your data.";
+				message = "The selected name is invalid, please check your data.";
 			}
-	
+			
 			try
 			{
-				transaction.setNo(textNo.getText());
-			}
-			catch(AttributeException e)
-			{
-				message = "The given no is invalid, please check your data.";
-			}
-	
-			try
-			{
-				transaction.setCategory((Category)comboCategory.getSelectedItem());
+				template.setCategory((Category)comboCategory.getSelectedItem());
 			}
 			catch(AttributeException e)
 			{
@@ -366,7 +327,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 	
 			try
 			{
-				transaction.setAmount(((SpinnerNumberModel)spinnerAmount.getModel()).getNumber().doubleValue());
+				template.setAmount(((SpinnerNumberModel)spinnerAmount.getModel()).getNumber().doubleValue());
 			}
 			catch(AttributeException e)
 			{
@@ -375,7 +336,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 	
 			try
 			{
-				transaction.setRemarks(areaRemarks.getText());
+				template.setRemarks(areaRemarks.getText());
 			}
 			catch(AttributeException e)
 			{
@@ -386,11 +347,11 @@ public class TransactionDialog extends ADialog implements ActionListener
 			{
 				try
 				{
-					transaction.save();
+					template.save();
 				}
 				catch(ProviderException e)
 				{
-		            message = "Couldn't save transaction, an internal error occured. Please try again later.";
+		            message = "Couldn't save template, an internal error occured. Please try again later.";
 		            e.printStackTrace();
 				}
 			}
@@ -417,7 +378,7 @@ public class TransactionDialog extends ADialog implements ActionListener
         	}
         	else if(event.getSource().equals(buttonApply))
         	{
-        		if(saveTransaction())
+        		if(saveTemplate())
         		{
         			close(RESULT_APPLY);
         		}

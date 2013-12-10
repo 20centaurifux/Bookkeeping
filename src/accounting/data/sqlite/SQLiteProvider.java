@@ -363,7 +363,7 @@ public class SQLiteProvider implements IProvider
 	 * accounts:
 	 */
 	@Override
-	public Account createAccount(String name, String remarks, Currency currency) throws ProviderException
+	public Account createAccount(String name, String remarks, Currency currency, String noPrefix, int currentNo) throws ProviderException
 	{
 		Connection conn = null;
 		PreparedStatement stat;
@@ -375,9 +375,12 @@ public class SQLiteProvider implements IProvider
 			account.setName(name);
 			account.setRemarks(remarks);
 			account.setCurrency(currency);
+			account.setNoPrefix(noPrefix);
+			account.setCurrentNo(currentNo);
 			
 			conn = pool.getConnection(connectionString);
-			stat = prepareStatement(conn, "INSERT INTO account (name, remarks, currency_id, deleted) VALUES (?, ?, ?, 0)", new Object[]{ name, remarks, currency == null ? null : currency.getId() });
+			stat = prepareStatement(conn, "INSERT INTO account (name, remarks, currency_id, no_prefix, no_current, deleted) VALUES (?, ?, ?, ?, ?, 0)",
+					                       new Object[]{ name, remarks, currency == null ? null : currency.getId(), noPrefix, currentNo });
 			stat.execute();
 			account.setId(getLastInsertId(conn));
 			stat.close();
@@ -410,7 +413,7 @@ public class SQLiteProvider implements IProvider
 		try
 		{
 			conn = pool.getConnection(connectionString);
-			stat = prepareStatement(conn, "SELECT account.name, remarks, currency_id, description FROM account LEFT JOIN currency ON account.currency_id=currency.id WHERE account.id=? AND account.deleted=0", new Object[] { id });
+			stat = prepareStatement(conn, "SELECT account.name, remarks, no_prefix, no_current, currency_id, description FROM account LEFT JOIN currency ON account.currency_id=currency.id WHERE account.id=? AND account.deleted=0", new Object[] { id });
 			result = stat.executeQuery();
 
 			if(result.next())
@@ -419,12 +422,14 @@ public class SQLiteProvider implements IProvider
 				account.setId(id);
 				account.setName(result.getString(1));
 				account.setRemarks(result.getString(2));
+				account.setNoPrefix(result.getString(3));
+				account.setCurrentNo(result.getInt(4));
 
-				if(result.getObject(3) != null)
+				if(result.getObject(5) != null)
 				{
 					currency = pico.getComponent(Currency.class);
-					currency.setId(result.getLong(3));
-					currency.setName(result.getString(4));
+					currency.setId(result.getLong(5));
+					currency.setName(result.getString(6));
 					account.setCurrency(currency);
 				}
 			}
@@ -460,7 +465,8 @@ public class SQLiteProvider implements IProvider
 		try
 		{
 			conn = pool.getConnection(connectionString);
-			prepareAndExecuteStatement(conn, "UPDATE account SET name=?, remarks=?, currency_id=? WHERE id=?", new Object[]{ account.getName(), account.getRemarks(), account.getCurrency() == null ? null : account.getCurrency().getId(), account.getId() });
+			prepareAndExecuteStatement(conn, "UPDATE account SET name=?, remarks=?, currency_id=?, no_prefix=?, no_current=? WHERE id=?",
+					                         new Object[]{ account.getName(), account.getRemarks(), account.getCurrency() == null ? null : account.getCurrency().getId(), account.getNoPrefix(), account.getCurrentNo(), account.getId() });
 		}
 		catch(SQLException e)
 		{
@@ -513,6 +519,7 @@ public class SQLiteProvider implements IProvider
 		}
 	}
 
+	@Override
 	public List<Account> getAccounts() throws ProviderException
 	{
 		Connection conn = null;
@@ -549,6 +556,7 @@ public class SQLiteProvider implements IProvider
 	/*
 	 * transactions:
 	 */
+	@Override
 	public Transaction createTransaction(Account account, Category category, Date date, Double amount, String no, String remarks) throws ProviderException
 	{
 		Connection conn = null;
@@ -588,6 +596,7 @@ public class SQLiteProvider implements IProvider
 		return transaction;
 	}
 
+	@Override
 	public Transaction getTransaction(long id, Account account) throws ProviderException
 	{
 		Connection conn = null;
@@ -759,6 +768,183 @@ public class SQLiteProvider implements IProvider
 	}
 
 	/*
+	 * transactions nos:
+	 */
+	@Override
+	public boolean transactionNoExists(String no) throws ProviderException
+	{
+		Object result;
+
+		if((result = executeScalar("SELECT COUNT(id) FROM record WHERE deleted=0 AND no=?", new Object[]{ no })) != null)
+		{
+			if((int)result > 0)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/*
+	 * templates:
+	 */
+	@Override
+	public Template createTemplate(String name, Category category, Double amount, String remarks) throws ProviderException
+	{
+		Connection conn = null;
+		PreparedStatement stat;
+		Template template = null;
+
+		try
+		{
+			template = pico.getComponent(Template.class);
+			template.setName(name);
+			template.setCategory(category);
+			template.setAmount(amount);
+			template.setRemarks(remarks);
+
+			conn = pool.getConnection(connectionString);
+			stat = prepareStatement(conn, "INSERT INTO template (name, category_id, amount, remarks, deleted) VALUES (?, ?, ?, ?, 0)",
+			                              new Object[]{ name, category.getId(), category.isExpenditure() ? amount * -1 : amount, remarks });
+			stat.execute();
+			template.setId(getLastInsertId(conn));
+			stat.close();
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		catch(AttributeException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+
+		return template;
+	}
+	
+	@Override
+	public Template getTemplate(long id) throws ProviderException
+	{
+		Connection conn = null;
+		PreparedStatement stat;
+		ResultSet result;
+		Template template = null;
+		Category category;
+
+		try
+		{
+			conn = pool.getConnection(connectionString);
+			stat = prepareStatement(conn, "SELECT template.name, template.amount, template.remarks, category_id, category.description, category.expenditure " +
+			                              "FROM template INNER JOIN category ON category_id=category.id WHERE template.deleted=0 AND template.id=?", new Object[] { id });
+			result = stat.executeQuery();
+
+			if(result.next())
+			{
+				template = pico.getComponent(Template.class);
+				template.setId(id);
+				template.setName(result.getString(1));
+				template.setAmount(result.getDouble(2));
+				template.setRemarks(result.getString(3));
+
+				category = pico.getComponent(Category.class);
+				category.setId(result.getLong(4));
+				category.setName(result.getString(5));
+				category.setExpenditure(result.getBoolean(6));
+				template.setCategory(category);
+			}
+			else
+			{
+				throw new ProviderException("Couldn't find template.");
+			}
+
+			result.close();
+			stat.close();
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		catch(AttributeException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+
+		return template;
+	}
+	
+	@Override
+	public void updateTemplate(Template template) throws ProviderException
+	{
+		Connection conn = null;
+
+		try
+		{
+			conn = pool.getConnection(connectionString);
+			prepareAndExecuteStatement(conn, "UPDATE template SET name=?, category_id=?, amount=?, remarks=? WHERE id=?",
+                    new Object[]{ template.getName(), template.getCategory().getId(),
+					              template.getCategory().isExpenditure() ? template.getRebate() * -1 : template.getIncome(),
+					            		  template.getRemarks(), template.getId() });
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+	}
+	
+	@Override
+	public void deleteTemplate(long id) throws ProviderException
+	{
+		deleteEntity("template", id);
+	}
+	
+	@Override
+	public List<Template> getTemplates() throws ProviderException
+	{
+		Connection conn = null;
+		Statement stat;
+		ResultSet result;
+		LinkedList<Template> templates = new LinkedList<Template>();
+
+		try
+		{
+			conn = pool.getConnection(connectionString);
+			stat = conn.createStatement();
+			result = stat.executeQuery("SELECT id FROM template WHERE deleted=0 ORDER BY name");
+
+			while(result.next())
+			{
+				templates.add(getTemplate(result.getLong(1)));
+			}
+
+			result.close();
+			stat.close();
+		}
+		catch(SQLException e)
+		{
+			throw new ProviderException(e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
+
+		return templates;
+	}
+
+	/*
 	 *	database initialization:
 	 */
 	private void init() throws ClassNotFoundException, SQLException
@@ -767,15 +953,16 @@ public class SQLiteProvider implements IProvider
 		Statement stat;
 
 		// load JDBC driver:
-		Class.forName("SQLite.JDBCDriver");
+		Class.forName("org.sqlite.JDBC");
 	
 		// create tables:
 		conn = pool.getConnection(connectionString);
 		stat = conn.createStatement();
-		stat.execute("CREATE TABLE IF NOT EXISTS account (id INTEGER PRIMARY KEY, name VARCHAR(32) NOT NULL, remarks VARCHAR(512), currency_id INT, deleted INTEGER)");
+		stat.execute("CREATE TABLE IF NOT EXISTS account (id INTEGER PRIMARY KEY, name VARCHAR(32) NOT NULL, remarks VARCHAR(512), no_prefix VARCHAR(32), no_current INTEGER, currency_id INT, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS currency (id INTEGER PRIMARY KEY, description VARCHAR(32) NOT NULL, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS category (id INTEGER PRIMARY KEY, description VARCHAR(32) NOT NULL, expenditure BIT, deleted INTEGER)");
 		stat.execute("CREATE TABLE IF NOT EXISTS record (id INTEGER PRIMARY KEY, account_id INT NOT NULL, category_id INT NOT NULL, date INT, amount REAL, no VARCHAR(32), remarks VARCHAR(512), deleted INTEGER)");
+		stat.execute("CREATE TABLE IF NOT EXISTS template (id INTEGER PRIMARY KEY, name VARCHAR(32), category_id INT NOT NULL, amount REAL, remarks VARCHAR(512), deleted INTEGER)");
 
 		// close connection:
 		stat.close();
@@ -793,7 +980,7 @@ public class SQLiteProvider implements IProvider
 		if(((Integer)executeScalar("SELECT COUNT(id) FROM account", null)) == 0)
 		{
 			currency = createCurrency("Euro");
-			createAccount(translation.translate("Cash"), "", currency);
+			createAccount(translation.translate("Cash"), "", currency, null, 1);
 			createCategory(translation.translate("Books"), true);
 			createCategory(translation.translate("Car"), true);
 			createCategory(translation.translate("Clothes"), true);
