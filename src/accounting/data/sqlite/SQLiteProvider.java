@@ -48,7 +48,7 @@ public class SQLiteProvider implements IProvider
 			long revision;
 			
 			revision = detectVersion();
-			System.out.println(revision);
+
 			try
 			{
 				if(revision < SQLiteProvider.DB_REVISION)
