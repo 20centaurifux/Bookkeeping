@@ -27,13 +27,121 @@ import accounting.data.*;
 
 public class SQLiteProvider implements IProvider
 {
+	public static long DB_REVISION = 1;
+	
 	private MutablePicoContainer pico;
 	private static boolean initialized = false;
 	private ConnectionPool pool;
 	private String connectionString;
 
+	private class UpgradeUtil
+	{
+		private Connection conn;
+
+		public UpgradeUtil(Connection connection)
+		{
+			this.conn = connection;
+		}
+		
+		public void upgrade() throws ProviderException
+		{
+			long revision;
+			
+			revision = detectVersion();
+			System.out.println(revision);
+			try
+			{
+				if(revision < SQLiteProvider.DB_REVISION)
+				{
+					while(revision != SQLiteProvider.DB_REVISION)
+					{
+						if(revision == 0)
+						{
+							upgradeToRevision1();
+						}
+						else
+						{
+							throw new ProviderException(String.format("Found nvalid revision: %d", revision));
+						}
+						
+						revision++;
+					}
+				}
+				else if(revision > SQLiteProvider.DB_REVISION)
+				{
+					throw new ProviderException("Invalid database revision.");
+				}
+			}
+			catch(SQLException e)
+			{
+				throw new ProviderException("Couldn't upgrade database.", e);
+			}
+		}
+		
+		public long detectVersion() throws ProviderException
+		{
+			DatabaseMetaData meta;
+			ResultSet res;
+			Statement stmt;
+			boolean tableExists = false;
+			long version = 0;
+			
+			try
+			{
+				// test if version table exists:
+				meta = conn.getMetaData();
+				res = meta.getTables(null, null, null, new String[] { "TABLE" });
+	
+				while(res.next())
+				{
+					if(res.getString("TABLE_NAME").equals("version"))
+					{
+						tableExists = true;
+						break;
+					}
+				}
+				
+				res.close();
+				
+				// read revision:
+				if(tableExists)
+				{
+					stmt = conn.createStatement();
+					res = stmt.executeQuery("SELECT revision FROM version");
+					
+					if(res.next())
+					{
+						version = res.getLong(1);
+					}
+					
+					res.close();
+				}
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				throw new ProviderException("Couldn't detect database revision.", e);
+			}
+
+			return version;
+		}
+
+		void upgradeToRevision1() throws SQLException
+		{
+			Statement stmt;
+			
+			stmt = conn.createStatement();
+			
+			stmt.execute("CREATE TABLE version (revision INTEGER NOT NULL)");
+			stmt.execute("INSERT INTO version (revision) VALUES (1)");
+		}
+	}
+	
 	public SQLiteProvider(String connectionString) throws ClassNotFoundException, SQLException, ProviderException
 	{
+		UpgradeUtil util;
+		Connection conn = null;
+		
 		pico = Injection.getContainer();
 		pool = ConnectionPool.getInstance();
 		this.connectionString = connectionString;
@@ -41,7 +149,24 @@ public class SQLiteProvider implements IProvider
 		if(!initialized)
 		{
 			init();
+			
 			createInitialData();
+
+			try
+			{
+				conn = pool.getConnection(connectionString);
+
+				util = new UpgradeUtil(conn);
+				util.upgrade();
+			}
+			catch(Exception e)
+			{
+				throw e;
+			}
+			finally
+			{
+				pool.closeConnection(conn);
+			}			
 		}
 	}
 
