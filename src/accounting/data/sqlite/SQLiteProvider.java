@@ -27,7 +27,7 @@ import accounting.data.*;
 
 public class SQLiteProvider implements IProvider
 {
-	public static long DB_REVISION = 1;
+	public static long DB_REVISION = 2;
 	
 	private MutablePicoContainer pico;
 	private static boolean initialized = false;
@@ -58,6 +58,10 @@ public class SQLiteProvider implements IProvider
 						if(revision == 0)
 						{
 							upgradeToRevision1();
+						}
+						else if(revision == 1)
+						{
+							upgradeToRevision2();
 						}
 						else
 						{
@@ -134,6 +138,16 @@ public class SQLiteProvider implements IProvider
 			
 			stmt.execute("CREATE TABLE version (revision INTEGER NOT NULL)");
 			stmt.execute("INSERT INTO version (revision) VALUES (1)");
+		}
+
+		void upgradeToRevision2() throws SQLException
+		{
+			Statement stmt;
+			
+			stmt = conn.createStatement();
+			
+			stmt.execute("CREATE TABLE IF NOT EXISTS exchange_rate (currency_from INTEGER, currency_to INTEGER, ex_rate REAL, PRIMARY KEY(currency_from, currency_to))");
+			stmt.execute("UPDATE version set revision=2");
 		}
 	}
 	
