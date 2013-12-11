@@ -54,4 +54,7 @@ public interface IProvider
 	void updateTemplate(Template template) throws ProviderException;
 	void deleteTemplate(long id) throws ProviderException;
 	List<Template> getTemplates() throws ProviderException;
+	boolean exchangeRateExists(Currency from, Currency to) throws ProviderException;
+	double getExchangeRate(Currency from, Currency to) throws ProviderException;
+	void updateExchangeRate(Currency from, Currency to, double rate) throws ProviderException;
 }
