@@ -638,6 +638,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		Transaction transaction;
 
 		dialog = new TransferDialog(this, (Account)comboAccount.getSelectedItem());
+		dialog.addCategoryListener(this);
 		dialog.open();
 
 		if(dialog.getResult() == TransactionDialog.RESULT_APPLY)
@@ -716,6 +717,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		
 		dialog = new TemplateDialog(this, null);
 		dialog.addCategoryListener(this);
+		dialog.addCurrencyListener(this);
 		
 		dialog.open();
 	}

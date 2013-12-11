@@ -41,6 +41,7 @@ public class TemplateDialog extends ADialog implements ActionListener
 	private int result = RESULT_OK;
 	private Vector<ITemplateListener> listener = new Vector<ITemplateListener>();
 	private Vector<ICategoryListener> categoryListener = new Vector<ICategoryListener>();
+	private Vector<ICurrencyListener> currencyListener = new Vector<ICurrencyListener>();
 	private Translation translation = new Translation();
 
 	public TemplateDialog(JFrame parent, Template preSelected)
@@ -204,6 +205,11 @@ public class TemplateDialog extends ADialog implements ActionListener
 				dialog.addCategoryListener(l);
 			}
 			
+			for(ICurrencyListener l : currencyListener)
+			{
+				dialog.addCurrencyListener(l);
+			}
+			
 			dialog.open();
 
 			if(dialog.getResult() == dialog.RESULT_APPLY)
@@ -307,8 +313,18 @@ public class TemplateDialog extends ADialog implements ActionListener
 		this.categoryListener.add(listener);
 	}
 	
-	public void removeCurrencyListener(ITemplateListener listener)
+	public void removeCategoryListener(ICategoryListener listener)
 	{
-		this.listener.remove(listener);
+		this.categoryListener.remove(listener);
+	}
+
+	public void addCurrencyListener(ICurrencyListener listener)
+	{
+		currencyListener.add(listener);
+	}
+
+	public void removeCurrencyListener(ICurrencyListener listener)
+	{
+		currencyListener.remove(listener);
 	}
 }

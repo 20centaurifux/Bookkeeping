@@ -31,14 +31,13 @@ import accounting.Translation;
 import accounting.application.*;
 import accounting.data.*;
 
-public class EditTemplateDialog extends ADialog implements ActionListener
+public class EditTemplateDialog extends ADialog implements ActionListener, ICurrencyListener
 {
 	public static final int RESULT_CLOSE = 0;
 	public static final int RESULT_APPLY = 1;
 	public static final int RESULT_CANCEL = 2;
 
 	private static final long serialVersionUID = 8848635910124681241L;
-	private static Category lastCategory = null;
 	private Factory factory;
 	private Container contentPane;
 	private Template template;
@@ -48,13 +47,15 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 	private JButton buttonClose;
 	private JButton buttonApply;
 	private JTextField textAccount;
+	private JComboBox comboCurrency;
+	private JButton buttonCurrency;
 	private JSpinner spinnerDate;
 	private JButton buttonCategory;
 	private JSpinner spinnerAmount;
 	private int result = RESULT_CLOSE;
 	private Vector<ICategoryListener> listener = new Vector<ICategoryListener>();
+	private Vector<ICurrencyListener> currencyListener = new Vector<ICurrencyListener>();
 	private Translation translation;
-	private boolean saveLastCategory = false;
 
 	public EditTemplateDialog(JFrame parent, String title, Template template)
 	{
@@ -63,6 +64,7 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 			this.template = template;
 
 			populateCategoryBox();
+			populateCurrencies();
 			populateTemplate();
     }
 
@@ -73,18 +75,17 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 			template = null;
 
 			populateCategoryBox();
-
-			if(lastCategory != null)
-			{
-				comboCategory.setSelectedItem(lastCategory);
-			}
+			populateCurrencies();
 
 			if(comboCategory.getSelectedIndex() == -1)
 			{
 				comboCategory.setSelectedIndex(0);
 			}
 
-			saveLastCategory = true;
+			if(comboCurrency.getSelectedIndex() == -1)
+			{
+				comboCurrency.setSelectedIndex(0);
+			}
     }
 
 	public int getResult()
@@ -145,7 +146,7 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 
 		label = new JLabel("Name:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 110);
 		textName = new JTextField();
 		textName.setHorizontalAlignment(JTextField.LEFT);
 		GuiUtil.setPreferredWidth(textName, 250);
@@ -159,7 +160,7 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("Category:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 110);
 		comboCategory = new JComboBox();
 		comboCategory.setName("comboCategory");
 		comboCategory.setModel(new GenericComboBoxModel<Category>());
@@ -178,12 +179,32 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("Amount:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 110);
 		spinnerAmount= new JSpinner(new SpinnerNumberModel(0, 0, Double.MAX_VALUE, 5));
 		spinnerAmount.setEditor(new JSpinner.NumberEditor(spinnerAmount, "0.00"));
 		spinnerAmount.setName("spinnerAmount");
 		GuiUtil.setPreferredWidth(spinnerAmount, 250);
 		panel.add(spinnerAmount);        
+		
+		// currency:
+		panelContent.add(Box.createHorizontalBox());
+		panel = new JPanel();
+		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+		panelContent.add(panel); 
+		label = new JLabel("Currency:");
+		panel.add(label);
+		GuiUtil.setPreferredWidth(label, 110);
+		comboCurrency = new JComboBox();
+		comboCurrency.setName("comboCurrency");
+		comboCurrency.setModel(new GenericComboBoxModel<Currency>());
+		panel.add(comboCurrency);
+		GuiUtil.setPreferredWidth(comboCurrency, 250);
+		
+		buttonCurrency = new JButton("...");
+		buttonCurrency.setName("buttonCurrency");
+		buttonCurrency.addActionListener(this);
+		panel.add(buttonCurrency);
 		
 		// remarks:
 		panelContent.add(Box.createHorizontalBox());
@@ -240,12 +261,29 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 		}
 	}
 
+	private void populateCurrencies()
+	{
+		@SuppressWarnings("unchecked")
+		GenericListModel<Currency> model = (GenericListModel<Currency>)comboCurrency.getModel();
+
+		try
+		{
+			model.add(factory.getCurrencies());
+			model.sort();
+		}
+		catch(ProviderException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
 	private void populateTemplate()
 	{
 		textName.setText(template.getName());
 		comboCategory.setSelectedItem(template.getCategory());
 		spinnerAmount.setValue(template.getCategory().isExpenditure() ? template.getRebate() : template.getIncome());
 		areaRemarks.setText(template.getRemarks());
+		comboCurrency.setSelectedItem(template.getCurrency());
 	}
 
 	private void close(int resultCode)
@@ -285,6 +323,26 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 		}
 	}
 
+	private void editCurrencies()
+	{
+		CurrencyDialog dialog;
+
+		dialog = new CurrencyDialog(null, (Currency)comboCurrency.getSelectedItem());
+		dialog.addCurrencyListener(this);
+
+		for(ICurrencyListener listener : currencyListener)
+		{
+			dialog.addCurrencyListener(listener);
+		}
+		
+		dialog.open();
+
+		if(dialog.getResult() == CurrencyDialog.RESULT_OK)
+		{
+			comboCurrency.getModel().setSelectedItem(dialog.getSelectedCurrency());
+		}
+	}
+	
 	private boolean saveTemplate()
 	{
 		String message = null;
@@ -296,7 +354,7 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 				template = factory.createTemplate(textName.getText(),
 				                                  (Category)comboCategory.getSelectedItem(), 
 				                                  ((SpinnerNumberModel)spinnerAmount.getModel()).getNumber().doubleValue(),
-				                                  areaRemarks.getText());
+				                                  (Currency)comboCurrency.getSelectedItem(), areaRemarks.getText());
 			}
 			catch(ProviderException e)
 			{
@@ -324,7 +382,16 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 			{
 				message = "The selected category is invalid, please check your data.";
 			}
-	
+
+			try
+			{
+				template.setCurrency((Currency)comboCurrency.getSelectedItem());
+			}
+			catch(AttributeException e)
+			{
+				message = "The selected currency is invalid, please check your data.";
+			}
+			
 			try
 			{
 				template.setAmount(((SpinnerNumberModel)spinnerAmount.getModel()).getNumber().doubleValue());
@@ -387,9 +454,13 @@ public class EditTemplateDialog extends ADialog implements ActionListener
         	{
         		editCategories();
         	}
+        	else if(event.getSource().equals(buttonCurrency))
+        	{
+        		editCurrencies();
+        	}
         }
 	}
-
+	
 	public void addCategoryListener(ICategoryListener listener)
 	{
 		this.listener.add(listener);
@@ -400,15 +471,69 @@ public class EditTemplateDialog extends ADialog implements ActionListener
 		this.listener.remove(listener);
 	}
 
-	/*
-	 * window close event:
-	 */
-	@Override
-	public void windowClosing(WindowEvent event)
+	public void addCurrencyListener(ICurrencyListener listener)
 	{
-		if(saveLastCategory)
+		currencyListener.add(listener);
+	}
+
+	public void removeCurrencyListener(ICurrencyListener listener)
+	{
+		currencyListener.remove(listener);
+	}
+
+	@Override
+	public void currencyChanged(EntityEvent event)
+	{
+		@SuppressWarnings("unchecked")
+		GenericListModel<Currency> model = (GenericListModel<Currency>)comboCurrency.getModel();
+		Currency currency;
+		Currency source = (Currency)event.getSource();
+
+		comboCurrency.removeActionListener(this);
+
+		for(int i = 0; i < model.getSize(); ++i)
 		{
-			lastCategory = (Category)comboCategory.getSelectedItem();
+			currency = (Currency)model.getElementAt(i);
+
+			if(currency.getId() == source.getId())
+			{
+				try
+				{
+					currency.setName(source.getName());
+				}
+				catch(AttributeException e)
+				{
+					e.printStackTrace();
+				}
+
+				model.sort();
+				break;
+			}
 		}
+
+		comboCurrency.addActionListener(this);
+	}
+
+	@Override
+	public void currencyDeleted(EntityEvent event)
+	{
+		@SuppressWarnings("unchecked")
+		GenericListModel<Currency> model = (GenericListModel<Currency>)comboCurrency.getModel();
+		
+		comboCurrency.removeActionListener(this);
+		model.remove((Currency)event.getSource());
+		comboCurrency.addActionListener(this);
+	}
+
+	@Override
+	public void currencyAdded(EntityEvent event)
+	{
+		@SuppressWarnings("unchecked")
+		GenericListModel<Currency> model = (GenericListModel<Currency>)comboCurrency.getModel();
+
+		comboCurrency.removeActionListener(this);
+		model.add((Currency)event.getSource());
+		model.sort();
+		comboCurrency.addActionListener(this);
 	}
 }
