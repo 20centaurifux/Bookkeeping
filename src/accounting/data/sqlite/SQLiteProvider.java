@@ -19,6 +19,8 @@ package accounting.data.sqlite;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
+
+import org.omg.CORBA.OBJECT_NOT_EXIST;
 import org.picocontainer.MutablePicoContainer;
 import accounting.*;
 import accounting.application.*;
@@ -150,7 +152,7 @@ public class SQLiteProvider implements IProvider
 			stmt.execute("UPDATE version set revision=2");
 		}
 	}
-	
+
 	public SQLiteProvider(String connectionString) throws ClassNotFoundException, SQLException, ProviderException
 	{
 		UpgradeUtil util;
@@ -1081,6 +1083,67 @@ public class SQLiteProvider implements IProvider
 		}
 
 		return templates;
+	}
+
+	@Override
+	public boolean exchangeRateExists(Currency from, Currency to) throws ProviderException
+	{
+		Object result;
+		
+		result = executeScalar("SELECT COUNT(ex_rate) FROM exchange_rate WHERE (currency_from=? AND currency_to=?) OR (currency_from=? AND currency_to=?)",
+		                        new Object[] { from.getId(), to.getId(), to.getId(), from.getId() });
+		
+		if((Integer)result == 0)
+		{
+			return false;
+		}
+		
+		return true;
+	}
+	
+	@Override
+	public double getExchangeRate(Currency from, Currency to) throws ProviderException
+	{
+		Object result;
+
+		result = executeScalar("SELECT ex_rate FROM exchange_rate WHERE currency_from=? AND currency_to=?", new Object[] { from.getId(), to.getId() });
+		
+		if(result != null)
+		{
+			return (Double)result;
+		}
+		
+		result = executeScalar("SELECT ex_rate FROM exchange_rate WHERE currency_from=? AND currency_to=?", new Object[] { to.getId(), from.getId() });
+		
+		if(result != null)
+		{
+			return 1.0 / (Double)result;
+		}
+		
+		return 0.0;
+	}
+	
+	@Override
+	public void updateExchangeRate(Currency from, Currency to, double rate) throws ProviderException
+	{
+		Connection conn = null;
+		
+		try
+		{
+			conn = pool.getConnection(connectionString);
+
+			prepareAndExecuteStatement(conn, "DELETE FROM exchange_rate WHERE currency_from=? AND currency_to=?", new Object[] { to.getId(), from.getId() });
+			prepareAndExecuteStatement(conn, "REPLACE INTO exchange_rate (currency_from, currency_to, ex_rate) VALUES (?, ?, ?)", new Object[] { from.getId(), to.getId(), rate });
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			throw new ProviderException("Couldn't update exchange rate.", e);
+		}
+		finally
+		{
+			pool.closeConnection(conn);
+		}
 	}
 
 	/*
