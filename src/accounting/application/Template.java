@@ -19,9 +19,11 @@ package accounting.application;
 import java.util.Date;
 import java.util.Calendar;
 
-import sun.security.action.GetLongAction;
+import org.picocontainer.annotations.Inject;
 
+import accounting.Injection;
 import accounting.application.annotation.*;
+import accounting.data.IProvider;
 import accounting.data.ProviderException;
 
 @SuppressWarnings("unused")
@@ -39,6 +41,11 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 	@Attribute(name="Remarks", readable=true, writeable=true)
 	@StringValidator(allowNull=true, minLength=0, maxLength=512)
 	private String remarks;
+	@Attribute(name="Currency", readable=true, writeable=true)
+	@ObjectValidator(allowNull=false)
+	private Currency currency;
+
+	@Inject protected ExchangeUtil exchangeUtil;
 
 	@Override
 	protected void update() throws ProviderException
@@ -124,6 +131,25 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 
 		return 0;
 	}
+	
+	public void setCurrency(Currency currency) throws AttributeException
+	{
+		setAttribute("Currency", currency);
+	}
+	
+	public Currency getCurrency()
+	{
+		try
+		{
+			return (Currency)getAttribute("Currency");
+		}
+		catch(AttributeException e)
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
 
 	@Override
 	public int compareTo(Template template)
@@ -134,12 +160,23 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 	public Transaction createTransaction(Account account) throws ProviderException
 	{
 		String remarks = this.remarks;
+		double amount;
 		
 		if(remarks.isEmpty())
 		{
 			remarks = name;
 		}
 
+		try
+		{
+			amount = exchangeUtil.exchange(currency, account.getCurrency(), this.amount);
+		}
+		catch(ExchangeRateUtilException e)
+		{
+			e.printStackTrace();
+			amount = this.amount;
+		}
+		
 		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), amount, null, remarks);
 	}
 }

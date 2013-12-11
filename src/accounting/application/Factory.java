@@ -76,9 +76,9 @@ public final class Factory
 		return provider.getAccounts();
 	}
 	
-	public Template createTemplate(String name, Category category, Double amount, String remarks) throws ProviderException
+	public Template createTemplate(String name, Category category, Double amount, Currency currency, String remarks) throws ProviderException
 	{
-		return provider.createTemplate(name, category, amount, remarks);
+		return provider.createTemplate(name, category, amount, currency, remarks);
 	}
 	
 	public Template getTemplate(long id) throws ProviderException

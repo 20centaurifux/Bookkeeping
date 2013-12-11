@@ -49,7 +49,7 @@ public interface IProvider
 	List<Long> getTimestamps(long accountId) throws ProviderException;
 	double getBalance(long accountId, Date date) throws ProviderException;
 	boolean transactionNoExists(String no) throws ProviderException;
-	Template createTemplate(String name, Category category, Double amount, String remarks) throws ProviderException;
+	Template createTemplate(String name, Category category, Double amount, Currency currency, String remarks) throws ProviderException;
 	Template getTemplate(long id) throws ProviderException;
 	void updateTemplate(Template template) throws ProviderException;
 	void deleteTemplate(long id) throws ProviderException;

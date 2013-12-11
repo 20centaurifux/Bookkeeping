@@ -139,7 +139,7 @@ public class SQLiteProvider implements IProvider
 			stmt = conn.createStatement();
 			
 			stmt.execute("CREATE TABLE version (revision INTEGER NOT NULL)");
-			stmt.execute("INSERT INTO version (revision) VALUES (1)");
+			stmt.execute("INSERT INTO version (revision) VALUES (1)");	
 		}
 
 		void upgradeToRevision2() throws SQLException
@@ -147,8 +147,15 @@ public class SQLiteProvider implements IProvider
 			Statement stmt;
 			
 			stmt = conn.createStatement();
-			
 			stmt.execute("CREATE TABLE IF NOT EXISTS exchange_rate (currency_from INTEGER, currency_to INTEGER, ex_rate REAL, PRIMARY KEY(currency_from, currency_to))");
+			stmt.execute("ALTER TABLE template ADD COLUMN currency_id INTEGER");
+			stmt.execute("UPDATE template SET currency_id=(SELECT id FROM currency WHERE deleted=0 LIMIT 1)");
+			stmt.execute("CREATE TEMPORARY TABLE template_backup (id INTEGER PRIMARY KEY, name VARCHAR(32), category_id INT NOT NULL, amount REAL, currency_id INT NOT NULL, remarks VARCHAR(512), deleted INTEGER)");
+			stmt.execute("INSERT INTO template_backup SELECT id, name, category_id, amount, currency_id, remarks, deleted FROM template");
+			stmt.execute("DROP TABLE template");
+			stmt.execute("CREATE TABLE template (id INTEGER PRIMARY KEY, name VARCHAR(32), category_id INT NOT NULL, amount REAL, currency_id INT NOT NULL, remarks VARCHAR(512), deleted INTEGER)");
+			stmt.execute("INSERT INTO template SELECT * FROM template_backup");
+			stmt.execute("DROP TABLE template_backup");
 			stmt.execute("UPDATE version set revision=2");
 		}
 	}
@@ -931,7 +938,7 @@ public class SQLiteProvider implements IProvider
 	 * templates:
 	 */
 	@Override
-	public Template createTemplate(String name, Category category, Double amount, String remarks) throws ProviderException
+	public Template createTemplate(String name, Category category, Double amount, Currency currency, String remarks) throws ProviderException
 	{
 		Connection conn = null;
 		PreparedStatement stat;
@@ -946,8 +953,8 @@ public class SQLiteProvider implements IProvider
 			template.setRemarks(remarks);
 
 			conn = pool.getConnection(connectionString);
-			stat = prepareStatement(conn, "INSERT INTO template (name, category_id, amount, remarks, deleted) VALUES (?, ?, ?, ?, 0)",
-			                              new Object[]{ name, category.getId(), category.isExpenditure() ? amount * -1 : amount, remarks });
+			stat = prepareStatement(conn, "INSERT INTO template (name, category_id, amount, currency_id, remarks, deleted) VALUES (?, ?, ?, ?, ?, 0)",
+			                              new Object[]{ name, category.getId(), category.isExpenditure() ? amount * -1 : amount, currency.getId(), remarks });
 			stat.execute();
 			template.setId(getLastInsertId(conn));
 			stat.close();
@@ -976,12 +983,15 @@ public class SQLiteProvider implements IProvider
 		ResultSet result;
 		Template template = null;
 		Category category;
+		Currency currency;
 
 		try
 		{
 			conn = pool.getConnection(connectionString);
-			stat = prepareStatement(conn, "SELECT template.name, template.amount, template.remarks, category_id, category.description, category.expenditure " +
-			                              "FROM template INNER JOIN category ON category_id=category.id WHERE template.deleted=0 AND template.id=?", new Object[] { id });
+			stat = prepareStatement(conn, "SELECT template.name, template.amount, template.remarks, category_id, category.description, category.expenditure, currency.id, currency.description " +
+			                              "FROM template " +
+					                      "INNER JOIN category ON category_id=category.id " +
+					                      "INNER JOIN currency ON currency.id=currency_id WHERE template.deleted=0 AND template.id=?", new Object[] { id });
 			result = stat.executeQuery();
 
 			if(result.next())
@@ -997,6 +1007,11 @@ public class SQLiteProvider implements IProvider
 				category.setName(result.getString(5));
 				category.setExpenditure(result.getBoolean(6));
 				template.setCategory(category);
+				
+				currency = pico.getComponent(Currency.class);
+				currency.setId(result.getLong(7));
+				currency.setName(result.getString(7));
+				template.setCurrency(currency);
 			}
 			else
 			{
@@ -1030,10 +1045,10 @@ public class SQLiteProvider implements IProvider
 		try
 		{
 			conn = pool.getConnection(connectionString);
-			prepareAndExecuteStatement(conn, "UPDATE template SET name=?, category_id=?, amount=?, remarks=? WHERE id=?",
+			prepareAndExecuteStatement(conn, "UPDATE template SET name=?, category_id=?, amount=?, currency_id=?, remarks=? WHERE id=?",
                     new Object[]{ template.getName(), template.getCategory().getId(),
 					              template.getCategory().isExpenditure() ? template.getRebate() * -1 : template.getIncome(),
-					            		  template.getRemarks(), template.getId() });
+					              template.getCurrency().getId(), template.getRemarks(), template.getId() });
 		}
 		catch(SQLException e)
 		{
