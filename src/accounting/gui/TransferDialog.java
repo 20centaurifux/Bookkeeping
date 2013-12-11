@@ -19,15 +19,20 @@ package accounting.gui;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
+
+import org.picocontainer.PicoContainer;
+
 import java.util.*;
 import accounting.*;
 import accounting.application.*;
 import accounting.data.ProviderException;
 
-public class TransferDialog extends ADialog implements ActionListener
+public class TransferDialog extends ADialog implements ActionListener, ItemListener
 {
 	public static final int RESULT_DELETE = -1;
 	public static final int RESULT_APPLY = 1;
@@ -48,27 +53,35 @@ public class TransferDialog extends ADialog implements ActionListener
 	private JComboBox comboAccountTo;
 	private JComboBox comboCategoryTo;
 	private JButton buttonCategoryTo;
+	private JSpinner spinnerExchangeRate;
 	private JTextArea areaRemarks;
 	private int result = RESULT_DELETE;
 	private Factory factory;
 	private Vector<ICategoryListener> categoryListener = new Vector<ICategoryListener>();
 	private Transaction fromTransaction;
 	private Transaction toTransaction;
+	private ExchangeUtil exchangeUtil;
+	private Account lastDestination;
 
 	public TransferDialog(JFrame parent, Account account)
 	{
 		super(parent, "Transfer");
 
-		this.account = account;
-		
+		PicoContainer container = null;
+
 		try
 		{
-			factory = Injection.getContainer().getComponent(Factory.class);
+			container = Injection.getContainer();
 		}
 		catch(ClassNotFoundException e)
 		{
 			e.printStackTrace();
 		}
+
+		factory = container.getComponent(Factory.class);
+		exchangeUtil = container.getComponent(ExchangeUtil.class);
+
+		this.account = account;
 
 		populate();
 	}
@@ -151,7 +164,7 @@ public class TransferDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("From:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 120);
 		textAccount = new JTextField();
 		textAccount.setName("textAccount");
 		textAccount.setEnabled(false);
@@ -166,7 +179,7 @@ public class TransferDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("Category:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 120);
 		comboCategoryFrom = new JComboBox();
 		comboCategoryFrom.setName("comboCategoryFrom");
 		comboCategoryFrom.setModel(new GenericComboBoxModel<Category>());
@@ -189,7 +202,7 @@ public class TransferDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("Date:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 120);
 		spinnerDate = new JSpinner(new SpinnerDateModel());
 		spinnerDate.setEditor(new JSpinner.DateEditor(spinnerDate, "dd.MM.yyyy HH:mm:ss"));
 		spinnerDate.setName("spinnerDate");
@@ -204,7 +217,7 @@ public class TransferDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("No:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 120);
 		textNo = new JTextField();
 		textNo.setHorizontalAlignment(JTextField.RIGHT);
 		textNo.setName("textNo");
@@ -219,8 +232,8 @@ public class TransferDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("Amount:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
-		spinnerAmount= new JSpinner(new SpinnerNumberModel(0, 0, Double.MAX_VALUE, 5));
+		GuiUtil.setPreferredWidth(label, 120);
+		spinnerAmount = new JSpinner(new SpinnerNumberModel(0, 0, Double.MAX_VALUE, 5));
 		spinnerAmount.setEditor(new JSpinner.NumberEditor(spinnerAmount, "0.00"));
 		spinnerAmount.setName("spinnerAmount");
 		GuiUtil.setPreferredWidth(spinnerAmount, 250);
@@ -237,12 +250,13 @@ public class TransferDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("To:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 120);
 		comboAccountTo = new JComboBox();
 		comboAccountTo.setName("comboAccountTo");
 		comboAccountTo.setModel(new GenericComboBoxModel<Account>());
 		GuiUtil.setPreferredWidth(comboAccountTo, 250);
-		panel.add(comboAccountTo);        
+		panel.add(comboAccountTo);
+		comboAccountTo.addItemListener(this);
 
 		// category (to):
 		panelContent.add(Box.createHorizontalBox());
@@ -252,7 +266,7 @@ public class TransferDialog extends ADialog implements ActionListener
 		
 		label = new JLabel("Category:");
 		panel.add(label);
-		GuiUtil.setPreferredWidth(label, 70);
+		GuiUtil.setPreferredWidth(label, 120);
 		comboCategoryTo = new JComboBox();
 		comboCategoryTo.setName("comboCategoryTo");
 		comboCategoryTo.setModel(new GenericComboBoxModel<Category>());
@@ -266,7 +280,25 @@ public class TransferDialog extends ADialog implements ActionListener
 
 		// separator:
 		panelContent.add(new JSeparator());
-
+		
+		// exchange rate:
+		panelContent.add(Box.createHorizontalBox());
+		panel = new JPanel();
+		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		panelContent.add(panel);
+		
+		label = new JLabel("Exchange rate:");
+		panel.add(label);
+		GuiUtil.setPreferredWidth(label, 120);
+		spinnerExchangeRate = new JSpinner(new SpinnerNumberModel(0, 0, Double.MAX_VALUE, 1));
+		spinnerExchangeRate.setEditor(new JSpinner.NumberEditor(spinnerExchangeRate, "0.00"));
+		spinnerExchangeRate.setName("spinnerExchangeRate");
+		GuiUtil.setPreferredWidth(spinnerExchangeRate, 250);
+		panel.add(spinnerExchangeRate);
+		
+		// separator:
+		panelContent.add(new JSeparator());
+		
 		// remarks:
 		panelContent.add(Box.createHorizontalBox());
 		panel = new JPanel();
@@ -281,7 +313,7 @@ public class TransferDialog extends ADialog implements ActionListener
 		panelContent.add(panel); 
 		areaRemarks = new JTextArea();
 		panel.add(new JScrollPane(areaRemarks));
-		
+
 		// button panel:
 		panel = new JPanel();
 		panel.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -341,7 +373,6 @@ public class TransferDialog extends ADialog implements ActionListener
 				}
 				catch(NumberFormatException e) { }
 			}
-
 		}
 		catch(ProviderException e)
 		{
@@ -420,6 +451,41 @@ public class TransferDialog extends ADialog implements ActionListener
 			model.selectFirst();
 		}
 	}
+	
+	private void populateExchangeRate()
+	{
+		Account currentAccount;
+		
+		currentAccount = (Account)comboAccountTo.getSelectedItem();
+		
+		if(lastDestination == null || !currentAccount.equals(lastDestination))
+		{
+			if(currentAccount.getCurrency().equals(account.getCurrency()))
+			{
+				spinnerExchangeRate.setEnabled(false);
+				spinnerExchangeRate.setValue(0.0);
+			}
+			else
+			{
+				spinnerExchangeRate.setEnabled(true);
+				
+				try
+				{
+					spinnerExchangeRate.setValue(exchangeUtil.getExchangeRate(account.getCurrency(), currentAccount.getCurrency()));
+				}
+				catch(ExchangeRateNotFoundException e)
+				{
+					/* ignore */
+				}
+				catch(ExchangeRateUtilException e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+			lastDestination = currentAccount;
+		}
+	}
 
 	private void transfer() throws ProviderException
 	{
@@ -430,29 +496,46 @@ public class TransferDialog extends ADialog implements ActionListener
 		String no;
 		String remarks;
 		Properties props;
+		Account accountTo;
 
-		// create transactions:
-		categoryFrom = (Category)comboCategoryFrom.getSelectedItem();
-		categoryTo = (Category)comboCategoryTo.getSelectedItem();
-		date = ((SpinnerDateModel)spinnerDate.getModel()).getDate();
-		amount = ((SpinnerNumberModel)spinnerAmount.getModel()).getNumber().doubleValue();
-		no = textNo.getText();
-		remarks = areaRemarks.getText();
+		accountTo = (Account)comboAccountTo.getSelectedItem();
 		
-		fromTransaction = account.createTransaction(categoryFrom, date, amount, no, remarks);
-		toTransaction = ((Account)comboAccountTo.getSelectedItem()).createTransaction(categoryTo, date, amount, no, remarks);
-
-		// save categories to configuration:
-		props = Configuration.getProperties();
-		props.setProperty("transfer.from_id", categoryFrom.getId().toString());
-		props.setProperty("transfer.to_id", categoryTo.getId().toString());
-
 		try
 		{
-			Configuration.storeProperties(props);
+			// update exchange rate:
+			if(!account.getCurrency().equals(accountTo.getCurrency()))
+			{
+				exchangeUtil.updateExchangeRate(account.getCurrency(), accountTo.getCurrency(), (Double)spinnerExchangeRate.getValue());
+			}
+
+			// create transactions:
+			categoryFrom = (Category)comboCategoryFrom.getSelectedItem();
+			categoryTo = (Category)comboCategoryTo.getSelectedItem();
+			date = ((SpinnerDateModel)spinnerDate.getModel()).getDate();
+			amount = ((SpinnerNumberModel)spinnerAmount.getModel()).getNumber().doubleValue();
+			no = textNo.getText();
+			remarks = areaRemarks.getText();
+			
+			fromTransaction = account.createTransaction(categoryFrom, date, amount, no, remarks);
+			toTransaction = accountTo.createTransaction(categoryTo, date, exchangeUtil.exchange(account.getCurrency(), accountTo.getCurrency(), amount), no, remarks);
+	
+			// save categories to configuration:
+			props = Configuration.getProperties();
+			props.setProperty("transfer.from_id", categoryFrom.getId().toString());
+			props.setProperty("transfer.to_id", categoryTo.getId().toString());
+	
+			try
+			{
+				Configuration.storeProperties(props);
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
-		catch (IOException e)
+		catch(ExchangeRateUtilException e)
 		{
+			JOptionPane.showMessageDialog(this, "Couldn't transfer money, please try again.", "Transfer", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
 	}
@@ -502,6 +585,15 @@ public class TransferDialog extends ADialog implements ActionListener
 		else if(event.getSource().equals(buttonCategoryTo))
 		{
 			editCategories(false);
+		}
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent event)
+	{
+		if(event.getSource().equals(comboAccountTo))
+		{
+			populateExchangeRate();
 		}
 	}
 }
