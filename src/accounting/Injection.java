@@ -18,6 +18,7 @@ package accounting;
 
 import java.util.Properties;
 import org.picocontainer.*;
+import org.picocontainer.behaviors.OptInCaching;
 import org.picocontainer.parameters.ConstantParameter;
 
 import accounting.application.*;
@@ -28,7 +29,7 @@ public final class Injection
 	{
 		Properties props;
 		Class<?> providerClass;
-		MutablePicoContainer pico = new DefaultPicoContainer();
+		MutablePicoContainer pico = new DefaultPicoContainer(new OptInCaching());
 
 		// get properties:
 		props = Configuration.getProperties();
@@ -47,6 +48,7 @@ public final class Injection
 		pico.addComponent(Account.class);
 		pico.addComponent(Transaction.class);
 		pico.addComponent(Template.class);
+		pico.as(Characteristics.CACHE).addComponent(ExchangeUtil.class);
 
 		return pico;
 	}	
