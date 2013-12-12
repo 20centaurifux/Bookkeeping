@@ -177,6 +177,11 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 			amount = this.amount;
 		}
 
-		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), amount, account.nextNo(), remarks);
+		if(getCategory().isExpenditure())
+		{
+			amount *= -1.0;
+		}
+		
+  		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), amount, account.nextNo(), remarks);
 	}
 }
