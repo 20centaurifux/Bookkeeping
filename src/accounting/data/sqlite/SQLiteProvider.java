@@ -333,13 +333,19 @@ public class SQLiteProvider implements IProvider
 	public int countCurrencyReferences(long id) throws ProviderException
 	{
 		Object result;
+		int refs = 0;
 
 		if((result = executeScalar("SELECT COUNT(id) FROM account WHERE account.deleted=0 AND currency_id=?", new Object[]{ id })) != null)
 		{
-			return (Integer)result;
+			refs = (Integer)result;
 		}
 
-		return 0;
+		if((result = executeScalar("SELECT COUNT(id) FROM template WHERE template.deleted=0 AND currency_id=?", new Object[]{ id })) != null)
+		{
+			refs += (Integer)result;
+		}
+
+		return refs;
 	}
 
 	/*
@@ -485,13 +491,19 @@ public class SQLiteProvider implements IProvider
 	public int countCategoryReferences(long id) throws ProviderException
 	{
 		Object result;
+		int refs = 0;
 
 		if((result = executeScalar("SELECT COUNT(id) FROM record WHERE deleted=0 AND category_id=?", new Object[]{ id })) != null)
 		{
-			return (Integer)result;
+			refs = (Integer)result;
 		}
 
-		return 0;
+		if((result = executeScalar("SELECT COUNT(id) FROM template WHERE deleted=0 AND category_id=?", new Object[]{ id })) != null)
+		{
+			refs = (Integer)result;
+		}
+
+		return refs;
 	}
 
 	@Override
