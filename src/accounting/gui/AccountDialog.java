@@ -718,7 +718,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 		{
 			try
 			{
-				account = factory.createAccount(name, "", (Currency)comboCurrency.getModel().getElementAt(0), textNoPrefix.getText(), (Integer)spinnerCurrentNo.getModel().getValue());
+				account = factory.createAccount(name, "", (Currency)comboCurrency.getModel().getElementAt(0), null, 1);
 				model.add(account);
 				model.sort();
 				selectAccount(account);
