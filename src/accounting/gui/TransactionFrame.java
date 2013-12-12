@@ -299,6 +299,14 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		menuItem.setName("Accounting_EditTemplates");
 		menuItem.addActionListener(this);
 		menu.add(menuItem);
+
+		menu = new JMenu("?");
+		menuBar.add(menu);
+
+		menuItem = new JMenuItem("About");
+		menuItem.setName("Accounting_About");
+		menuItem.addActionListener(this);
+		menu.add(menuItem);
 	}
 
 	private void initializeFilterPanel()
@@ -867,6 +875,10 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
             {
             	editTemplates();
             }
+            else if(((JComponent)event.getSource()).getName().equals("Accounting_About"))
+            {
+            	showAbout();
+            }
             else if(event.getSource().equals(buttonDelete))
             {
             	deleteSelectedTransaction();
@@ -888,6 +900,16 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
     	{
     		populateTransactions();
         }
+	}
+	
+	/*
+	 * about dialog:
+	 */
+	public void showAbout()
+	{
+		AboutDialog dialog = new AboutDialog(this);
+		
+		dialog.open();
 	}
 	
 	/*
