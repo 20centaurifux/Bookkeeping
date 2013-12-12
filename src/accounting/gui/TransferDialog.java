@@ -475,7 +475,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 				}
 				catch(ExchangeRateNotFoundException e)
 				{
-					/* ignore */
+					spinnerExchangeRate.setValue(1.0);
 				}
 				catch(ExchangeRateUtilException e)
 				{
