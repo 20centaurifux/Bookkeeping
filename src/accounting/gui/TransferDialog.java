@@ -345,7 +345,8 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 		int id;
 
 		textAccount.setText(account.getName());
-
+		textNo.setText(account.nextNo());
+		
 		try
 		{
 			model.clear();
@@ -518,7 +519,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 			
 			fromTransaction = account.createTransaction(categoryFrom, date, amount, no, remarks);
 			toTransaction = accountTo.createTransaction(categoryTo, date, exchangeUtil.exchange(account.getCurrency(), accountTo.getCurrency(), amount), no, remarks);
-	
+
 			// save categories to configuration:
 			props = Configuration.getProperties();
 			props.setProperty("transfer.from_id", categoryFrom.getId().toString());
