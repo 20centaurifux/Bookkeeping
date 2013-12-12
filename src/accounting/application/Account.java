@@ -20,7 +20,6 @@ import java.util.*;
 import accounting.application.annotation.*;
 import accounting.data.ProviderException;
 
-@SuppressWarnings("unused")
 public class Account extends AEntity<Long> implements Comparable<Account>
 {
 	@Attribute(name="Name", readable=true, writeable=true)

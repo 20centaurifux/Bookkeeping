@@ -19,6 +19,7 @@ package accounting.gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.*;
 import org.picocontainer.PicoContainer;
@@ -33,7 +34,7 @@ public class TemplateDialog extends ADialog implements ActionListener
 	private static final long serialVersionUID = 6261344341258703750L;
 	private Factory factory;
 	private Container contentPane;
-    private JList listEntries;
+    private JList<Template> listEntries;
     private JButton buttonAdd;
     private JButton buttonEdit;
     private JButton buttonDelete;
@@ -66,16 +67,17 @@ public class TemplateDialog extends ADialog implements ActionListener
 
 	public Template getSelectedTemplate()
 	{
-		Object[] entries = listEntries.getSelectedValues();
+		List<Template> entries = listEntries.getSelectedValuesList();
 
-		if(entries.length == 1)
+		if(entries.size() > 0)
 		{
-			return (Template)entries[0];
+			return entries.get(0);
 		}
 
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void initialize()
 	{
 		PicoContainer pico;
@@ -113,7 +115,7 @@ public class TemplateDialog extends ADialog implements ActionListener
 		contentPane.add(panelContent, BorderLayout.CENTER);
 
 		// list:
-		listEntries = new JList();
+		listEntries = new JList<Template>();
 		listEntries.setModel(new GenericListModel<Template>());
 		listEntries.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listEntries.registerKeyboardAction(new ActionListener()
@@ -173,7 +175,7 @@ public class TemplateDialog extends ADialog implements ActionListener
 		
 		dialog.open();
 		
-		if(dialog.getResult() == dialog.RESULT_APPLY)
+		if(dialog.getResult() == EditTemplateDialog.RESULT_APPLY)
 		{
 			template = dialog.getTemplate();
 			((GenericListModel<Template>)listEntries.getModel()).add(template);
@@ -188,10 +190,8 @@ public class TemplateDialog extends ADialog implements ActionListener
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void editSelectedTemplate()
 	{
-		GenericListModel<Template> model;
 		Template template;
 		EditTemplateDialog dialog;
 		EntityEvent ev;
@@ -212,7 +212,7 @@ public class TemplateDialog extends ADialog implements ActionListener
 			
 			dialog.open();
 
-			if(dialog.getResult() == dialog.RESULT_APPLY)
+			if(dialog.getResult() == EditTemplateDialog.RESULT_APPLY)
 			{
 				ev = new EntityEvent(template);
 

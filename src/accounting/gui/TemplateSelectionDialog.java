@@ -19,7 +19,6 @@ package accounting.gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Vector;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -37,7 +36,7 @@ public class TemplateSelectionDialog extends ADialog implements ActionListener
 	private static final long serialVersionUID = 6261344341258703750L;
 	private Factory factory;
 	private Container contentPane;
-    private JList listEntries;
+    private JList<Template> listEntries;
     private JButton buttonOk;
     private JButton buttonCancel;
 	private int result = RESULT_DELETE;
@@ -59,14 +58,15 @@ public class TemplateSelectionDialog extends ADialog implements ActionListener
 	{
 		List<Template> templates = new ArrayList<Template>();
 		
-		for(Object obj : listEntries.getSelectedValues())
+		for(Template tpl : listEntries.getSelectedValuesList())
 		{
-			templates.add((Template)obj);
+			templates.add(tpl);
 		}
 
 		return templates;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void initialize()
 	{
 		PicoContainer pico;
@@ -104,7 +104,7 @@ public class TemplateSelectionDialog extends ADialog implements ActionListener
 		contentPane.add(panelContent, BorderLayout.CENTER);
 
 		// list:
-		listEntries = new JList();
+		listEntries = new JList<Template>();
 		listEntries.setModel(new GenericListModel<Template>());
 		listEntries.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		panelContent.add(new JScrollPane(listEntries), BorderLayout.CENTER);

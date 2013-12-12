@@ -18,7 +18,6 @@ package accounting.gui;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Calendar;
 import java.util.Vector;
 
 import javax.swing.*;
@@ -42,14 +41,12 @@ public class EditTemplateDialog extends ADialog implements ActionListener, ICurr
 	private Container contentPane;
 	private Template template;
 	private JTextField textName;
-	private JComboBox comboCategory;
+	private JComboBox<Category> comboCategory;
 	private JTextArea areaRemarks;
 	private JButton buttonClose;
 	private JButton buttonApply;
-	private JTextField textAccount;
-	private JComboBox comboCurrency;
+	private JComboBox<Currency> comboCurrency;
 	private JButton buttonCurrency;
-	private JSpinner spinnerDate;
 	private JButton buttonCategory;
 	private JSpinner spinnerAmount;
 	private int result = RESULT_CLOSE;
@@ -98,6 +95,7 @@ public class EditTemplateDialog extends ADialog implements ActionListener, ICurr
 		return template;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void initialize()
 	{
 		PicoContainer pico;
@@ -161,7 +159,7 @@ public class EditTemplateDialog extends ADialog implements ActionListener, ICurr
 		label = new JLabel("Category:");
 		panel.add(label);
 		GuiUtil.setPreferredWidth(label, 110);
-		comboCategory = new JComboBox();
+		comboCategory = new JComboBox<Category>();
 		comboCategory.setName("comboCategory");
 		comboCategory.setModel(new GenericComboBoxModel<Category>());
 		GuiUtil.setPreferredWidth(comboCategory, 250);
@@ -195,7 +193,7 @@ public class EditTemplateDialog extends ADialog implements ActionListener, ICurr
 		label = new JLabel("Currency:");
 		panel.add(label);
 		GuiUtil.setPreferredWidth(label, 110);
-		comboCurrency = new JComboBox();
+		comboCurrency = new JComboBox<Currency>();
 		comboCurrency.setName("comboCurrency");
 		comboCurrency.setModel(new GenericComboBoxModel<Currency>());
 		panel.add(comboCurrency);

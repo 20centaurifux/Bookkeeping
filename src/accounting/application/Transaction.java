@@ -20,7 +20,6 @@ import java.util.Date;
 import accounting.application.annotation.*;
 import accounting.data.ProviderException;
 
-@SuppressWarnings("unused")
 public class Transaction extends AEntity<Long>
 {
 	@Attribute(name="Account", readable=true, writeable=true)

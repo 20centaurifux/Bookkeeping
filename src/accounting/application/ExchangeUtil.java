@@ -18,7 +18,6 @@ package accounting.application;
 
 import org.picocontainer.annotations.Inject;
 
-import accounting.Injection;
 import accounting.data.*;
 
 public class ExchangeUtil

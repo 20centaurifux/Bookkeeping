@@ -19,7 +19,6 @@ package accounting.application;
 import accounting.application.annotation.*;
 import accounting.data.ProviderException;
 
-@SuppressWarnings("unused")
 public final class Currency extends AEntity<Long> implements Comparable<Currency>
 {
 	@Attribute(name="Name", readable=true, writeable=true)

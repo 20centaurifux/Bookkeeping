@@ -45,7 +45,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 	private JButton buttonAdd;
 	private JButton buttonDelete;
 	private JTextField textName;
-	private JComboBox comboCurrency;
+	private JComboBox<Currency> comboCurrency;
 	private JButton buttonCurrency;
 	private JTextField textNoPrefix;
 	private JSpinner spinnerCurrentNo;
@@ -222,6 +222,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void initialize()
 	{
@@ -314,7 +315,7 @@ public class AccountDialog extends ADialog implements ActionListener, ListSelect
 
 		labelCurrency = new JLabel("Currency:");
 		panel.add(labelCurrency);
-		comboCurrency = new JComboBox();
+		comboCurrency = new JComboBox<Currency>();
 		comboCurrency.setName("comboCurrency");
 		comboCurrency.setModel(new GenericComboBoxModel<Currency>());
 		panel.add(comboCurrency);

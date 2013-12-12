@@ -18,6 +18,7 @@ package accounting.gui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -36,7 +37,7 @@ public class CategoryDialog extends ADialog implements ActionListener
 	private static final long serialVersionUID = 2527776778200979645L;
 	private Factory factory;
 	private Container contentPane;
-    private JList listEntries;
+    private JList<Category> listEntries;
     private JButton buttonAddExpense;
     private JButton buttonAddIncome;
     private JButton buttonRename;
@@ -67,16 +68,17 @@ public class CategoryDialog extends ADialog implements ActionListener
 
 	public Category getSelectedCategory()
 	{
-		Object[] entries = listEntries.getSelectedValues();
+		List<Category> entries = listEntries.getSelectedValuesList();
 
-		if(entries != null && entries.length >= 1)
+		if(entries != null && entries.size() >= 1)
 		{
-			return (Category)entries[0];
+			return entries.get(0);
 		}
 
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void initialize()
 	{
 		PicoContainer pico;
@@ -114,7 +116,7 @@ public class CategoryDialog extends ADialog implements ActionListener
 		contentPane.add(panelContent, BorderLayout.CENTER);
 
 		// list:
-		listEntries = new JList();
+		listEntries = new JList<Category>();
 		listEntries.setModel(new GenericListModel<Category>());
 		listEntries.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listEntries.registerKeyboardAction(new ActionListener()

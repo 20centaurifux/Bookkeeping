@@ -18,6 +18,7 @@ package accounting.gui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -34,7 +35,7 @@ public class CurrencyDialog extends ADialog implements ActionListener
 	private static final long serialVersionUID = 2261144841758703750L;
 	private Factory factory;
 	private Container contentPane;
-    private JList listEntries;
+    private JList<Currency> listEntries;
     private JButton buttonAdd;
     private JButton buttonRename;
     private JButton buttonDelete;
@@ -61,16 +62,17 @@ public class CurrencyDialog extends ADialog implements ActionListener
 
 	public Currency getSelectedCurrency()
 	{
-		Object[] entries = listEntries.getSelectedValues();
+		List<Currency> entries = listEntries.getSelectedValuesList();
 
-		if(entries.length == 1)
+		if(entries.size() > 0)
 		{
-			return (Currency)entries[0];
+			return entries.get(0);
 		}
 
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void initialize()
 	{
 		PicoContainer pico;
@@ -108,7 +110,7 @@ public class CurrencyDialog extends ADialog implements ActionListener
 		contentPane.add(panelContent, BorderLayout.CENTER);
 
 		// list:
-		listEntries = new JList();
+		listEntries = new JList<Currency>();
 		listEntries.setModel(new GenericListModel<Currency>());
 		listEntries.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listEntries.registerKeyboardAction(new ActionListener()

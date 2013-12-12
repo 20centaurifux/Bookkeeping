@@ -43,7 +43,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 	private Container contentPane;
 	private Transaction transaction;
 	private JTextField textNo;
-	private JComboBox comboCategory;
+	private JComboBox<Category> comboCategory;
 	private JTextArea areaRemarks;
 	private JButton buttonClose;
 	private JButton buttonApply;
@@ -104,6 +104,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 		return transaction;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void initialize()
 	{
 		PicoContainer pico;
@@ -191,7 +192,7 @@ public class TransactionDialog extends ADialog implements ActionListener
 		label = new JLabel("Category:");
 		panel.add(label);
 		GuiUtil.setPreferredWidth(label, 70);
-		comboCategory = new JComboBox();
+		comboCategory = new JComboBox<Category>();
 		comboCategory.setName("comboCategory");
 		comboCategory.setModel(new GenericComboBoxModel<Category>());
 		GuiUtil.setPreferredWidth(comboCategory, 250);

@@ -21,6 +21,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import accounting.application.*;
 
+@SuppressWarnings("rawtypes")
 public class GenericListModel<T extends Comparable<? super T>> extends AbstractListModel implements IEntityListener
 {
 	protected List<T> items = new LinkedList<T>();

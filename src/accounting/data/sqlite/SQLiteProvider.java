@@ -19,8 +19,6 @@ package accounting.data.sqlite;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
-
-import org.omg.CORBA.OBJECT_NOT_EXIST;
 import org.picocontainer.MutablePicoContainer;
 import accounting.*;
 import accounting.application.*;

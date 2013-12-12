@@ -19,6 +19,7 @@ package accounting.gui;
 import javax.swing.*;
 import javax.swing.event.*;
 
+@SuppressWarnings("rawtypes")
 public class GenericComboBoxModel<T extends Comparable<? super T>> extends GenericListModel<T> implements ComboBoxModel
 {
 	private static final long serialVersionUID = 3830985086287173229L;

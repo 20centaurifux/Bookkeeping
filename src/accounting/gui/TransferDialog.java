@@ -47,11 +47,11 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 	private JTextField textAccount;
 	private JTextField textNo;
 	private JSpinner spinnerDate;
-	private JComboBox comboCategoryFrom;
+	private JComboBox<Category> comboCategoryFrom;
 	private JButton buttonCategoryFrom;
 	private JSpinner spinnerAmount;
-	private JComboBox comboAccountTo;
-	private JComboBox comboCategoryTo;
+	private JComboBox<Account> comboAccountTo;
+	private JComboBox<Category> comboCategoryTo;
 	private JButton buttonCategoryTo;
 	private JSpinner spinnerExchangeRate;
 	private JTextArea areaRemarks;
@@ -133,6 +133,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 		categoryListener.remove(listener);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void initialize()
 	{
@@ -180,7 +181,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 		label = new JLabel("Category:");
 		panel.add(label);
 		GuiUtil.setPreferredWidth(label, 120);
-		comboCategoryFrom = new JComboBox();
+		comboCategoryFrom = new JComboBox<Category>();
 		comboCategoryFrom.setName("comboCategoryFrom");
 		comboCategoryFrom.setModel(new GenericComboBoxModel<Category>());
 		GuiUtil.setPreferredWidth(comboCategoryFrom, 250);
@@ -251,7 +252,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 		label = new JLabel("To:");
 		panel.add(label);
 		GuiUtil.setPreferredWidth(label, 120);
-		comboAccountTo = new JComboBox();
+		comboAccountTo = new JComboBox<Account>();
 		comboAccountTo.setName("comboAccountTo");
 		comboAccountTo.setModel(new GenericComboBoxModel<Account>());
 		GuiUtil.setPreferredWidth(comboAccountTo, 250);
@@ -267,7 +268,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 		label = new JLabel("Category:");
 		panel.add(label);
 		GuiUtil.setPreferredWidth(label, 120);
-		comboCategoryTo = new JComboBox();
+		comboCategoryTo = new JComboBox<Category>();
 		comboCategoryTo.setName("comboCategoryTo");
 		comboCategoryTo.setModel(new GenericComboBoxModel<Category>());
 		GuiUtil.setPreferredWidth(comboCategoryTo, 250);
@@ -420,7 +421,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 	{
 		CategoryDialog dialog;
 		Category selectedCategory;
-		JComboBox comboBox;
+		JComboBox<Category> comboBox;
 		GenericComboBoxModel<Category> model;
 
 		comboBox = expenditure ? comboCategoryFrom : comboCategoryTo;
@@ -541,7 +542,7 @@ public class TransferDialog extends ADialog implements ActionListener, ItemListe
 		}
 	}
 
-	private void selectCategoryById(int id, JComboBox comboBox)
+	private void selectCategoryById(int id, JComboBox<Category> comboBox)
 	{
 		@SuppressWarnings("unchecked")
 		GenericComboBoxModel<Category> model = (GenericComboBoxModel<Category>)comboBox.getModel();

@@ -33,8 +33,8 @@ import accounting.data.*;
 public class TransactionFrame extends AFrame implements ActionListener, MouseListener, ICategoryListener, ICurrencyListener, IAccountListener
 {
 	private static final long serialVersionUID = -8339739594637884467L;
-	private JComboBox comboTimeframe;
-	private JComboBox comboAccount;
+	private JComboBox<String> comboTimeframe;
+	private JComboBox<Account> comboAccount;
 	private JButton buttonAccounts;
 	private JTable tableTransactions;
 	private JButton buttonAdd;
@@ -309,6 +309,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		menu.add(menuItem);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void initializeFilterPanel()
 	{
 		JPanel panel;
@@ -321,7 +322,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	
 		// timeframe:
 		panel.add(new JLabel("Month:"));
-		comboTimeframe = new JComboBox();
+		comboTimeframe = new JComboBox<String>();
 		comboTimeframe.setName("comboTimeframe");
 		panel.add(comboTimeframe);
 		GuiUtil.setPreferredWidth(comboTimeframe, 80);
@@ -329,7 +330,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	
 		// account(s):
 		panel.add(new JLabel("Account:"));
-		comboAccount = new JComboBox();
+		comboAccount = new JComboBox<Account>();
 		comboAccount.setModel(new GenericComboBoxModel<Account>());
 		comboAccount.setName("comboAccount");
 		panel.add(comboAccount);
@@ -472,7 +473,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 
 	private void populateTimeframeBox()
 	{
-        DefaultComboBoxModel model;
+        DefaultComboBoxModel<String> model;
 		Date date;
 		String dateString;
 		SimpleDateFormat format;
@@ -483,7 +484,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 			return;
 		}
 
-		model = (DefaultComboBoxModel)comboTimeframe.getModel();
+		model = (DefaultComboBoxModel<String>)comboTimeframe.getModel();
 		model.removeAllElements();
 
 		format = new SimpleDateFormat("yyyy/MM");
@@ -809,7 +810,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	{
 		SimpleDateFormat dateFormat;
 		String dateString;
-		DefaultComboBoxModel comboModel;
+		DefaultComboBoxModel<String> comboModel;
 		Calendar calendar;
 
 		// check if month has been changed:
@@ -822,7 +823,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 			populateTimeframeBox();
 
 			// select specified month:
-			comboModel = (DefaultComboBoxModel)comboTimeframe.getModel();
+			comboModel = (DefaultComboBoxModel<String>)comboTimeframe.getModel();
 
 			for(int i = 0; i < comboModel.getSize(); ++i)
 			{
