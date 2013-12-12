@@ -176,7 +176,7 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 			e.printStackTrace();
 			amount = this.amount;
 		}
-		
-		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), amount, null, remarks);
+
+		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), amount, account.nextNo(), remarks);
 	}
 }

@@ -163,7 +163,7 @@ public class Account extends AEntity<Long> implements Comparable<Account>
 				no = String.format("%s%d", prefix, ++i);
 			} while(provider.transactionNoExists(no));
 			
-			if(i != currentNo + 1)
+			if(i != currentNo)
 			{
 				currentNo = i;
 				update();
