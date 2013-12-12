@@ -67,7 +67,7 @@ public class AboutDialog extends ADialog implements ActionListener
 		label.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(0, 10, 5, 0), null));
 		panelContent.add(label);
 
-		label = new JLabel(String.format("<html><font color=#525252>%s</font></html>", AppInfo.DATE));
+		label = new JLabel(String.format("<html><font color=#525252>licensed under %s, %s</font></html>", AppInfo.LICENSE, AppInfo.DATE));
 		label.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(0, 10, 5, 0), null));
 		panelContent.add(label);
 

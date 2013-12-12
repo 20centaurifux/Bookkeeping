@@ -26,6 +26,7 @@ public final class AppInfo
 	public static int VERSION_PATCHLEVEL = 1;
 	public static String AUTHOR = "Sebastian Fedrau";
 	public static String AUTHOR_EMAIL = "sebastian.fedrau@gmail.com";
+	public static String LICENSE = "GPLv2";
 
 	public static String[] ICON =
 	{
