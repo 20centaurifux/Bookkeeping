@@ -77,7 +77,7 @@ public class Transaction extends AEntity<Long>
 	{
 		if(this.category != null && category.isExpenditure() != this.category.isExpenditure())
 		{
-			amount *= -1;
+			amount *= -1.0;
 		}
 
 		setAttribute("Category", category);
@@ -117,7 +117,7 @@ public class Transaction extends AEntity<Long>
 	{
 		if(category != null)
 		{
-			setAttribute("Amount", category.isExpenditure() ? amount * -1 : amount);
+			setAttribute("Amount", category.isExpenditure() ? Math.abs(amount) * -1.0 : Math.abs(amount));
 		}
 		else
 		{

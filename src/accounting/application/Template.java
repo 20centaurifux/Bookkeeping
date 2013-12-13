@@ -84,7 +84,7 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 	{
 		if(this.category != null && category.isExpenditure() != this.category.isExpenditure())
 		{
-			amount *= -1;
+			amount *= -1.0;
 		}
 
 		setAttribute("Category", category);
@@ -104,7 +104,7 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 	{
 		if(category != null)
 		{
-			setAttribute("Amount", category.isExpenditure() ? amount * -1 : amount);
+			setAttribute("Amount", category.isExpenditure() ? Math.abs(amount) * -1.0 : Math.abs(amount));
 		}
 		else
 		{
@@ -177,11 +177,6 @@ public class Template extends AEntity<Long> implements Comparable<Template>
 			amount = this.amount;
 		}
 
-		if(getCategory().isExpenditure())
-		{
-			amount *= -1.0;
-		}
-		
-  		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), amount, account.nextNo(), remarks);
+  		return provider.createTransaction(account, category, Calendar.getInstance().getTime(), Math.abs(amount), account.nextNo(), remarks);
 	}
 }
