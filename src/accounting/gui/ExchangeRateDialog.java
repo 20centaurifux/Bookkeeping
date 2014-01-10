@@ -42,7 +42,7 @@ public class ExchangeRateDialog extends ADialog implements ActionListener
 	private JComboBox<Currency> comboCurrency;
 	private JTable tableCurrencies;
     private JButton buttonSave;
-    private JButton buttonCancel;
+    private JButton buttonClose;
     private Translation translation;
     private PicoContainer pico;
     private ExchangeUtil util;
@@ -139,7 +139,7 @@ public class ExchangeRateDialog extends ADialog implements ActionListener
 			try
 			{
 				rate.rate = util.getExchangeRate(from, to);
-				
+
 				if(rate.rate == null)
 				{
 					rate.rate = 0.0;
@@ -326,10 +326,10 @@ public class ExchangeRateDialog extends ADialog implements ActionListener
 		buttonSave.addActionListener(this);
 		panel.add(buttonSave);
 		
-		buttonCancel = new JButton("Cancel");
-		buttonCancel.setName("buttonCancel");
-		buttonCancel.addActionListener(this);
-		panel.add(buttonCancel);
+		buttonClose = new JButton("Close");
+		buttonClose.setName("buttonClose");
+		buttonClose.addActionListener(this);
+		panel.add(buttonClose);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -386,7 +386,7 @@ public class ExchangeRateDialog extends ADialog implements ActionListener
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getSource().equals(buttonCancel))
+		if(e.getSource().equals(buttonClose))
 		{
 			close();
 		}
