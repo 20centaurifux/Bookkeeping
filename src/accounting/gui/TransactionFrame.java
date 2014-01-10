@@ -300,6 +300,14 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 		menuItem.addActionListener(this);
 		menu.add(menuItem);
 
+		menu = new JMenu("Extra");
+		menuBar.add(menu);
+
+		menuItem = new JMenuItem("Exchange rates");
+		menuItem.setName("Accounting_ExchangeRates");
+		menuItem.addActionListener(this);
+		menu.add(menuItem);
+
 		menu = new JMenu("?");
 		menuBar.add(menu);
 
@@ -790,6 +798,16 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	}	
 
 	/*
+	 *	edit exchange rates:
+	 */
+	private void editExchangeRates()
+	{
+		ADialog d = new ExchangeRateDialog(this);
+		
+		d.open();
+	}
+	
+	/*
 	 * helpers:
 	 */
 	private void selectTransaction(Transaction transaction)
@@ -875,6 +893,10 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
             else if(((JComponent)event.getSource()).getName().equals("Accounting_EditTemplates"))
             {
             	editTemplates();
+            }
+            else if(((JComponent)event.getSource()).getName().equals("Accounting_ExchangeRates"))
+            {
+            	editExchangeRates();
             }
             else if(((JComponent)event.getSource()).getName().equals("Accounting_About"))
             {
