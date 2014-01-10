@@ -1132,7 +1132,7 @@ public class SQLiteProvider implements IProvider
 		Object result;
 
 		result = executeScalar("SELECT ex_rate FROM exchange_rate WHERE currency_from=? AND currency_to=?", new Object[] { from.getId(), to.getId() });
-		
+
 		if(result != null)
 		{
 			return (Double)result;
@@ -1140,7 +1140,7 @@ public class SQLiteProvider implements IProvider
 		
 		result = executeScalar("SELECT ex_rate FROM exchange_rate WHERE currency_from=? AND currency_to=?", new Object[] { to.getId(), from.getId() });
 		
-		if(result != null)
+		if(result != null && (Double)result > 0.0)
 		{
 			return 1.0 / (Double)result;
 		}
