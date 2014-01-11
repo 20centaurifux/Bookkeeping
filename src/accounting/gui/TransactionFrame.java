@@ -223,7 +223,7 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	 */
 	public TransactionFrame()
 	{
-		super(String.format("%s version %d.%d.%d", AppInfo.TITLE, AppInfo.VERSION_MAJOR, AppInfo.VERSION_MINOR, AppInfo.VERSION_PATCHLEVEL));
+		super(String.format("%s version %s", AppInfo.TITLE, AppInfo.VERSION_DESCRIPTION));
 	}
 
 	/*

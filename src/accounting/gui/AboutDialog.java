@@ -59,7 +59,7 @@ public class AboutDialog extends ADialog implements ActionListener
 		panelContent.setLayout(new BoxLayout(panelContent, BoxLayout.Y_AXIS));
 		contentPane.add(panelContent, BorderLayout.CENTER);
 		
-		label = new JLabel(String.format("<html><font size=+2>%s, version %d.%d.%d</font></html>", AppInfo.TITLE, AppInfo.VERSION_MAJOR, AppInfo.VERSION_MINOR, AppInfo.VERSION_PATCHLEVEL));
+		label = new JLabel(String.format("<html><font size=+2>%s, version %s</font></html>", AppInfo.TITLE, AppInfo.VERSION_DESCRIPTION));
 		label.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(0, 10, 15, 0), null));
 		panelContent.add(label);
 

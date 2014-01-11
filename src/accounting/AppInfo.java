@@ -24,6 +24,7 @@ public final class AppInfo
 	public static int VERSION_MAJOR = 0;
 	public static int VERSION_MINOR = 1;
 	public static int VERSION_PATCHLEVEL = 1;
+	public static String VERSION_DESCRIPTION = String.format("%d.%d.%d.beta", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCHLEVEL);
 	public static String AUTHOR = "Sebastian Fedrau";
 	public static String AUTHOR_EMAIL = "sebastian.fedrau@gmail.com";
 	public static String LICENSE = "GPLv2";
