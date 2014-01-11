@@ -24,13 +24,21 @@ import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
+import accounting.Translation;
 import accounting.application.Account;
 import accounting.application.Transaction;
 
 public class CSVExport extends AExport
 {
+	private Translation translation;
+
+	public CSVExport()
+	{
+			translation = new Translation();
+	}
+	
 	@Override
 	public String getName()
 	{
@@ -109,10 +117,14 @@ public class CSVExport extends AExport
 						dateFormat.format(t.getDate()), t.getNo(), quoteString(t.getRemarks()), quoteString(t.getCategory().getName()),
 						decimalFormat.format(t.getIncome()), decimalFormat.format(t.getRebate())));
 			}
+			
+			JOptionPane.showMessageDialog(null, translation.translate("Data exported successfully."), translation.translate("CSV export"), JOptionPane.INFORMATION_MESSAGE);
 		}
 		catch(Exception ex)
 		{
 			ex.printStackTrace();
+			
+			JOptionPane.showMessageDialog(null, translation.translate("Data export failed."), translation.translate("CSV export"), JOptionPane.ERROR_MESSAGE);
 		}
 		finally
 		{
