@@ -19,7 +19,7 @@ package accounting;
 public final class AppInfo
 {
 	public static String TITLE = "Bookkeeping";
-	public static String DATE = "2012-2013";
+	public static String DATE = "2012-2014";
 	public static String URL = "http://github.com/20centaurifux/Bookkeeping";
 	public static int VERSION_MAJOR = 0;
 	public static int VERSION_MINOR = 1;
