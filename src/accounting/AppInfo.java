@@ -6,7 +6,7 @@
 
 /***************************************************************************
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU General Public License 3 as published by
     the Free Software Foundation.
 
     This program is distributed in the hope that it will be useful,
@@ -27,7 +27,7 @@ public final class AppInfo
 	public static String VERSION_DESCRIPTION = String.format("%d.%d.%d.beta", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCHLEVEL);
 	public static String AUTHOR = "Sebastian Fedrau";
 	public static String AUTHOR_EMAIL = "sebastian.fedrau@gmail.com";
-	public static String LICENSE = "GPLv2";
+	public static String LICENSE = "GPLv3";
 
 	public static String[] ICON =
 	{
