@@ -29,6 +29,8 @@ import accounting.*;
 import accounting.application.*;
 import accounting.application.Currency;
 import accounting.data.*;
+import accounting.export.AExport;
+import accounting.export.CSVExport;
 
 public class TransactionFrame extends AFrame implements ActionListener, MouseListener, ICategoryListener, ICurrencyListener, IAccountListener
 {
@@ -276,6 +278,11 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 
 		menu = new JMenu("File");
 		menuBar.add(menu);
+
+		menuItem = new JMenuItem("Export month to CSV");
+		menuItem.setName("File_ExportMonthToCSV");
+		menuItem.addActionListener(this);
+		menu.add(menuItem);
 		
 		menuItem = new JMenuItem("Close");
 		menuItem.setName("File_Close");
@@ -808,6 +815,33 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
 	}
 	
 	/*
+	 * data export:
+	 */
+	private void exportMonth(String format)
+	{
+		AExport exporter;
+		String parts[];
+		
+		if((exporter = getExporter(format)) == null)
+		{
+			return;
+		}
+		
+		parts = comboTimeframe.getSelectedItem().toString().split("/", 2);
+		exporter.exportMonth((Account)comboAccount.getSelectedItem(), Integer.parseInt(parts[0], 10), Integer.parseInt(parts[1], 10));
+	}
+
+	private AExport getExporter(String name)
+	{
+		if(name == "csv")
+		{
+			return new CSVExport();
+		}
+		
+		return null;
+	}
+	
+	/*
 	 * helpers:
 	 */
 	private void selectTransaction(Transaction transaction)
@@ -881,6 +915,10 @@ public class TransactionFrame extends AFrame implements ActionListener, MouseLis
         	if(((JComponent)event.getSource()).getName().equals("File_Close"))
             {
                 close();
+            }
+        	if(((JComponent)event.getSource()).getName().equals("File_ExportMonthToCSV"))
+            {
+                exportMonth("csv");
             }
             else if(((JComponent)event.getSource()).getName().equals("Accounting_NewTransaction") || event.getSource().equals(buttonAdd))
             {
