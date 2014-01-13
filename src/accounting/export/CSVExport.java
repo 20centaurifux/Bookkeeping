@@ -150,6 +150,11 @@ public class CSVExport extends AExport
 	
 	String quoteString(String text)
 	{
+		if(text == null)
+		{
+			return "\"\"";
+		}
+
 		return String.format("\"%s\"", text.replaceAll("\"", "\"\""));
 	}
 }
